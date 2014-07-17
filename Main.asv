@@ -6,7 +6,7 @@ clc
 addpath('Misc')
 
 %Network parameters
-N=50; %number of neurons
+N=300; %number of neurons
 spar = 0.1; %sparsity level; 
 bias=0; %bias 
 seed_weights=1; % random seed
@@ -14,7 +14,7 @@ conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=1e4; %timesteps
+T=1e5; %timesteps
 sample_ratio=0.8; %fraction of observed neurons per time step
 sample_type='fully_random';
 seed_spikes=1;
@@ -49,7 +49,7 @@ temp(eye(N)>0.5)=0;
 spar_real=mean(~~temp(:));
 [Cxx, Cxy,EA] = GetStat(sampled_spikes,glasso,spar_real);
 
-%% Plot
+%%
 figure
 subplot(2,2,1); imagesc(Cxx); colorbar;
 subplot(2,2,2); imagesc(Cxy); colorbar;

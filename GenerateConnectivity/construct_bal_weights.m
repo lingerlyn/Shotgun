@@ -7,9 +7,11 @@ function [ W ] = construct_bal_weights(N, spar,lr_conn)
 %INPUT
 % N = total number of neurons
 % spar = sparsity level
+% lr_conn = fraction of long range connections
 
 % OUTPUT
 % N x N weight matrix
+
 
 %rnd(seed)
 total_conn = ceil(spar*N);

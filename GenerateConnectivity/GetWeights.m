@@ -13,16 +13,10 @@ if ~isempty(seed)
 end
 
 switch network_type
-    case 'original'
-        KK=spar*N; %number of exc connections per cell
-        A=-speye(N);
-        r=randperm(N);
-        r(r==k)=[];
-        A(k,r(1:KK))=1;
-        A(k,r((KK+1):(2*KK-1)))=-1;
-        A(k,k)=-1;
-    case 'balanced'
-        spar = 0.35;
+    case 'combi'
+        lr_conn = 0.01;
+        A=construct_weights_combi(N, spar,lr_conn);
+    case 'balanced'   
         lr_conn = 0.01;
         A = construct_bal_weights(N,spar,lr_conn);
     case 'circular'

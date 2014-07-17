@@ -70,7 +70,7 @@ if glasso==1
     
     lambda_high=1e2;
     lambda_low=1e-8;
-    if 0
+    if 1
         regularizatio_mat=1;
     else
         regularizatio_mat=ones(2*N);
@@ -84,7 +84,7 @@ if glasso==1
     msg=1;
     maxIter=100;
     
-    while  abs(lambda_low- lambda_high)/lambda_low >  Tol
+    while  abs(lambda_low- lambda_high)/lambda_low <  Tol
         lambda=(lambda_high+lambda_low)/2;    
         lambda_mat=lambda*regularizatio_mat;
         [inv_COV_res, COV_res, opt, cputime, iter, dGap] = QUIC('default', COV, lambda_mat, Tol, msg, maxIter);
