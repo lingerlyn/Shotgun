@@ -1,0 +1,9 @@
+N=360;
+K=[1/3;1/3;1/3]; %relative block sizes
+nTypes=length(K);
+aa=.1;
+str_mean=aa*ones(nTypes)-2*aa*eye(nTypes);
+str_var=.05*ones(nTypes);
+pconn=.2*ones(nTypes);
+seed=randi(1000);
+[A,labels]=construct_block_weights(N,K,str_mean,str_var,pconn,seed);
