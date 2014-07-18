@@ -1,4 +1,4 @@
-load EstimateA_demo_data.mat
+load demo_data.mat
 
 N=length(CXX);
 priors.eta=zeros(N);
