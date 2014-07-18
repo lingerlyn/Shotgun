@@ -1,8 +1,12 @@
-function name = GetName( params )
-%GETNAME Summary of this function goes here
+function file_name = GetName( params )
+% generate file name for saves
 %   Detailed explanation goes here
 
-% need to write this.....
+T=params.spike_gen.T;
+N=params.connectivity.N;
+obs=params.spike_gen.sample_ratio;
+
+file_name=['Results\Run_N=' num2str(N) '_obs=' num2str(obs) '_T=' num2str(T) '.mat'];
 
 end
 

@@ -1,4 +1,4 @@
-function sampled_spikes=SampleSpikes(spikes,sample_ratio,sample_type,seed)
+function sampled_spikes=SampleSpikes(spikes,sampled_ratio,sample_type,seed)
 % inputs:
 % spikes - NxT spikes matrix
 % sample_ratio - perscent of observed neurons
@@ -9,7 +9,7 @@ function sampled_spikes=SampleSpikes(spikes,sample_ratio,sample_type,seed)
 
 N=size(spikes,1);
 T=size(spikes,2);
-
+unsampled_ratio=1-sampled_ratio;
 ind=zeros(N,T)>1;
 
 stream = RandStream('mt19937ar','Seed',seed);
@@ -19,21 +19,21 @@ RandStream.setGlobalStream(stream);
         case 'spatially_random'
             for tt=1:T
                 temp=randperm(N);
-                ind(temp(1:round(N*sample_ratio)),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
+                ind(temp(1:round(N*unsampled_ratio)),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
             end            
         case 'fully_random'
-            ind=rand(N,T)<sample_ratio;
+            ind=rand(N,T)<unsampled_ratio;
         case 'fixed_subset'
-            ind(1:N*sample_ratio,:)=1;
+            ind(1:N*unsampled_ratio,:)=1;
         case 'random_NN_blocks'
-            K=floor(sample_ratio*N/2);
+            K=floor(unsampled_ratio*N/2);
             for tt=1:T                
                 temp=mod((-K:K)+randi(N),N)+1;
                 ind(temp,tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
             end
         case 'serial_scan'
-            block_size=floor(sample_ratio*N);
-            block_num=ceil(1/sample_ratio);
+            block_size=floor(unsampled_ratio*N);
+            block_num=ceil(1/unsampled_ratio);
             for tt=1:T
                 if block_num>2
                     block_start=mod(tt,block_num)*block_size;
