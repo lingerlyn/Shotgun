@@ -1,4 +1,4 @@
-function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,priors,params)
+function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,mY,mYn,priors)
 % Calculate VB posterior distribution of spike-and-slab distributed weights from Carbonetto and Stephens. 
 % INPUTS: 
 % CXX - covariance
@@ -18,6 +18,13 @@ function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,priors,params)
 % rates_A: posterior slab means
 % s_sq: posterior slab variances
 
+    addpath('Misc')
+    addpath('EstimateConnectivity\Carbonetto')
+
+    params.n_eff=mYn;
+    params.m=mY./(mYn+eps);
+    params.options = optimset('GradObj','on','Display','off');
+
     N=length(CXX);
     
     alpha=zeros(N);
@@ -35,9 +42,7 @@ function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,priors,params)
     m=params.m;
     z=randn(1e4,1);
 
-	for k=1:N
-
-	
+	for k=1:N	
             
 		[alpha(k,:), rates_A(k,:), s_sq(k,:)]=...
 			varbvs_general_ss(CXX*params.n_eff(k),CXY(:,k)*params.n_eff(k),noise_var(k),ss2(k,:)',logit(a(k,:)'),eta(k,:)',a0(k,:)',eta0(k,:)',1e-6);

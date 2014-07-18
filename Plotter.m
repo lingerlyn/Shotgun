@@ -1,12 +1,12 @@
-%% Plot
-figure
-subplot(2,2,1); imagesc(Cxx); colorbar;
-subplot(2,2,2); imagesc(Cxy); colorbar;
 mi=min(W(:));ma=max(W(:));
-subplot(2,2,3); imagesc(EW,[mi ma]); h=colorbar;
-set(h, 'ylim', [mi ma])
-subplot(2,2,4); imagesc(W,[mi ma]); h=colorbar;
-set(h, 'ylim', [mi ma])
+%% Plot
+% figure
+% subplot(2,2,1); imagesc(Cxx); colorbar;
+% subplot(2,2,2); imagesc(Cxy); colorbar;
+% subplot(2,2,3); imagesc(EW,[mi ma]); h=colorbar;
+% set(h, 'ylim', [mi ma])
+% subplot(2,2,4); imagesc(W,[mi ma]); h=colorbar;
+% set(h, 'ylim', [mi ma])
 
 
 % figure
@@ -19,6 +19,9 @@ figure
 plot(A_ind,A_ind);
 hold all
 scatter(W(:),EW(:))
+hold all
+scatter(W(:),EW2(:))
+legend('Direct','VB')
 xlabel('True weights')
 ylabel('Estimated weights')
 title(['correlation=' num2str(corr(EW(:),W(:))) ]);

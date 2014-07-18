@@ -1,4 +1,4 @@
-function [ CXX, CXY,W,eye_mat ] = GetStat( sampled_spikes,glasso,restricted_penalty,pos_def,sparsity,varargin)
+function [ CXX, CXY,W,eye_mat,mY,mYn] = GetStat( sampled_spikes,glasso,restricted_penalty,pos_def,sparsity,varargin)
 % inputs:
 % sampled_spikes - observed spikes (with NaNs in unobsereved samples)
 % glasso - flag that indicate whether or not use glasso
@@ -55,10 +55,10 @@ for t = 2:T
     mYn(g)=mYn(g)+1;
 end
 
-m=mY./(mYn+eps); %estimate the mean firing rates
-CXX=XX./(XXn+eps)-m*m'; %estimate the covariance (not including stim terms for now)
+rates=mY./(mYn+eps); %estimate the mean firing rates
+CXX=XX./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
 CXX((XXn<10))=0;%set elements to zero that haven't been observed sufficiently
-CXY=XY./(XYn+eps)-m*m'; %estimate cross-covariance
+CXY=XY./(XYn+eps)-rates*rates'; %estimate cross-covariance
 CXY((XYn<10))=0;
 COV = [CXX CXY; CXY' CXX];
 inv_COV=COV\eye(2*N);

@@ -8,7 +8,7 @@ clc
 addpath('Misc')
 
 %Network parameters
-N=100; %number of neurons
+N=50; %number of neurons
 spar = 0.1; %sparsity level; 
 bias=0; %bias 
 seed_weights=1; % random seed
@@ -17,8 +17,8 @@ conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=1e4; %timesteps
-sample_ratio=0.2; %fraction of observed neurons per time step
+T=1e5; %timesteps
+sample_ratio=0.1; %fraction of observed neurons per time step
 neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign'
 sample_type='fully_random';
 seed_spikes=1;
@@ -60,7 +60,7 @@ addpath('EstimateStatistics')
 % temp(eye(N)>0.5)=0;
 % est_spar=mean(~~temp(:));
 tic
-[Cxx, Cxy,EW,eye_mat,rates,spike_count] = GetStat(sampled_spikes,glasso,restricted_penalty,pos_def,est_spar);
+[Cxx, Cxy,EW,eye_mat,rates] = GetStat(sampled_spikes,glasso,restricted_penalty,pos_def,est_spar);
 t_elapsed=toc
 params.t_elapsed=t_elapsed;
 Ebias=0;
@@ -68,11 +68,11 @@ Ebias=0;
 
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
-[EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,spike_count,est_priors);
+[EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,mYn,est_priors);
 
 %% Save Results
 file_name=GetName(params);  %need to make this a meaningful name
-save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','params');
+save(file_name,'W','bias','EW','Cxx','Cxy','Ebias','params');
 
 %% Plot
 Plotter
