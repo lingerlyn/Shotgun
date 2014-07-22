@@ -19,7 +19,7 @@ function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,mY,mYn,priors)
 % s_sq: posterior slab variances
 
     addpath('Misc')
-    addpath(fullfile('EstimateConnectivity','Carbonetto'))
+    addpath(fullpath('EstimateConnectivity','Carbonetto'))
 
     params.n_eff=mYn;
     params.m=mY./(mYn+eps);
