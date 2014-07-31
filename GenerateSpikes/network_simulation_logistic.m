@@ -1,8 +1,9 @@
-function s=network_simulation_logistic(A,b,T,seed)
+function s=network_simulation_logistic(A,b,T,T0,seed)
 % This function simulates a network with parameters
 % A - network connectivity (NxN)
 % b - bias (Nx1)
 % T - simulation duration (scalar)
+% T0 - burn-in time (scalar) - time to wait so network activity becomes stationary
 % seed - random seed
 % and outputs 
 % s - network spikes (NxT)
@@ -14,7 +15,7 @@ f = @(x) 1./(1+exp(-x));
 stream = RandStream('mt19937ar','Seed',seed);
 RandStream.setGlobalStream(stream);
 
-T0=1e2; %time to wait so network activity becomes stationary
+% T0=1e2; %time to wait so network activity becomes stationary
 s0=rand(N,1)<0.5;
 for tt=1:T0
     s0=rand(N,1)<f(A*s0+b);

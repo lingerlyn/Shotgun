@@ -23,7 +23,7 @@ function [EA,alpha, rates_A, s_sq]=EstimateA(CXX,CXY,mY,mYn,priors)
 
     params.n_eff=mYn;
     params.m=mY./(mYn+eps);
-    params.options = optimset('GradObj','on','Display','off');
+    params.options = optimset('GradObj','on','Display','off','LargeScale','off');
 
     N=length(CXX);
     

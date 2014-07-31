@@ -21,6 +21,8 @@ switch network_type
     case 'circular'
         NN_range=5;
         A = construct_weights_circ_NN(N,NN_range);
+    case 'rand'
+        A=randn(N).*(rand(N)<spar);
 end
 
 A=A*scale;

@@ -1,8 +1,9 @@
-function s=network_simulation_sign(A,b,T,seed)
+function s=network_simulation_sign(A,b,T,T0,seed)
 % This function simulates a sign thresholded network with parameters
 % A - network connectivity (NxN)
 % b - bias (Nx1)
 % T - simulation duration (scalar)
+% T0 - burn-in time (scalar) - time to wait so network activity becomes stationary
 % seed - random seed
 % and outputs 
 % s - network activity (NxT)
@@ -15,7 +16,7 @@ s=zeros(N,T);
 stream = RandStream('mt19937ar','Seed',seed);
 RandStream.setGlobalStream(stream);
 
-T0=1e2; %time to wait so network activity becomes stationary
+% T0=1e2; %time to wait so network activity becomes stationary
 s0=rand(N,1)<0.5;
 for tt=1:T0
     s0=sign(A*s0+b+sigma_noise*randn(N,1));

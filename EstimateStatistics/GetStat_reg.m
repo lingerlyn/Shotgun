@@ -1,4 +1,4 @@
-function [ CXX, CXY,W,eye_mat,mY,mYn] = GetStat( sampled_spikes,glasso,restricted_penalty,pos_def,sparsity,true_W)
+function [ CXX, CXY,W,eye_mat,mY,mYn] = GetStat_reg( sampled_spikes,glasso,restricted_penalty,pos_def,sparsity,true_W)
 % inputs:
 % sampled_spikes -NxT observed spikes (with NaNs in unobsereved samples)
 % glasso - flag that indicate whether or not use glasso
@@ -27,6 +27,8 @@ XY=zeros(N);
 XYn=zeros(N);
 mY=zeros(N,1);
 mYn=zeros(N,1);
+mY2=zeros(N,1);
+mYn2=zeros(N,1);
 
 
 %% Calculate sufficient stats
@@ -39,19 +41,27 @@ for t = 2:T
     g = find(~isnan(sampled_spikes(:,t)));
     sg = double(sampled_spikes(g,t));
     
-    XX(f,f)=XX(f,f)+sf*sf';
-    XXn(f,f)=XXn(f,f)+1;    
-    XY(f,g)=XY(f,g)+sf*sg';
-    XYn(f,g)=XYn(f,g)+1;
+    if mod(t,2)==0
+        XX(f,f)=XX(f,f)+sf*sf';
+        XXn(f,f)=XXn(f,f)+1;
+        XY(f,g)=XY(f,g)+sf*sg';
+        XYn(f,g)=XYn(f,g)+1;
+        mY(g)=mY(g)+sg;
+        mYn(g)=mYn(g)+1;
+    end
+    if mod(t,2)==1
+        mY2(g)=mY2(g)+sg;
+        mYn2(g)=mYn2(g)+1;
+    end
     
-    mY(g)=mY(g)+sg;
-    mYn(g)=mYn(g)+1;
+
 end
 
 rates=mY./(mYn+eps); %estimate the mean firing rates
-CXX=XX./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
+rates2=mY2./(mYn2+eps); %estimate the mean firing rates
+CXX=XX./(XXn+eps)-rates2*rates2'; %estimate the covariance (not including stim terms for now)
 CXX((XXn<10))=0;%set elements to zero that haven't been observed sufficiently
-CXY=XY./(XYn+eps)-rates*rates'; %estimate cross-covariance
+CXY=XY./(XYn+eps)-rates2*rates'; %estimate cross-covariance
 CXY((XYn<10))=0;
 COV = [CXX CXY; CXY' CXX];
 
@@ -119,11 +129,11 @@ if glasso==1
 
                 sparsity_measure=mean(~~temp(:)); 
                 cond=sparsity_measure<sparsity;
-                loop_cond=(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
-                 if sparsity==1
+                loop_cond=0*(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
+                if sparsity==1
                     loop_cond=0;
-                 end
-                 
+                end
+
             if cond
                 lambda_high=lambda
             else
@@ -135,8 +145,7 @@ if glasso==1
         CXY = COV_res(1:N,N+1:end);%%%%%
         CXX = COV_res(1:N,1:N);%%%%%
         W=-inv_COV_res((N+1):end,1:N);
-        eye_mat=inv_COV_res((N+1):end,(N+1):end);
-    
+        eye_mat=inv_COV_res((N+1):end,(N+1):end);    
     else
         CXY = COV(1:N,N+1:end);%%%%%
         CXX = COV(1:N,1:N);%%%%%
