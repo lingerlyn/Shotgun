@@ -8,16 +8,16 @@ clc
 addpath('Misc')
 
 %Network parameters
-N=500; %number of neurons
+N=100; %number of neurons
 spar =0.2; %sparsity level; 
 bias=0; %bias 
 seed_weights=1; % random seed
 weight_scale=0.1; % scale of weights
-conn_type='Balanced';
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=1e5; %timesteps
+T=1e3; %timesteps
 T0=0; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='linear'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
@@ -27,7 +27,7 @@ seed_sample=1;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes);
 
 % Sufficeint Statistics Estimation flags
-glasso=0; %use glasso?
+glasso=1; %use glasso?
 restricted_penalty=0; % use a restricted l1 penality in lasso (only on parts of the inv_COV matrix)?
 pos_def=0; % use positive semidefinite projection?
 est_spar=spar; % estimated sparsity level. If empty, we "cheat". We just use the prior (not it is not accurate in some types of matrices, due to long range connections), and increase it a bit to reduce shrinkage
@@ -72,7 +72,7 @@ addpath('EstimateConnectivity');
 % [EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,spike_count,est_priors);
 % EW2=EstimateA_L1(Cxx,Cxy,lambda)
 % EW2=Cxy'/Cxx;
-EW2=EstimateA_L1(Cxx,Cxy,est_spar)
+EW2=EstimateA_L1(Cxx,Cxy,est_spar);
 %% Save Results
 file_name=GetName(params);  %need to make this a meaningful name
 save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','params');
