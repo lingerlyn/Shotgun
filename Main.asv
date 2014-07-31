@@ -13,7 +13,7 @@ spar =0.2; %sparsity level;
 bias=0; %bias 
 seed_weights=1; % random seed
 weight_scale=0.1; % scale of weights
-conn_type='Balanced';
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters

@@ -24,7 +24,7 @@ switch network_type
     case 'rand'
         A=randn(N).*(rand(N)<spar);
     otherwise
-        error('unknown connectivity type!')
+        error('unknown')
 end
 
 A=A*scale;

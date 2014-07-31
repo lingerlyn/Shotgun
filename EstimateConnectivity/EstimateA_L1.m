@@ -7,10 +7,17 @@ function EW=EstimateA_L1(CXX,CXY,sparsity)
 % OUTPUTS:
 % EW: ML estimate of weights
 
+%params
 iterations=30;
-Tol_sparse=0.01; %tolerance for sparsity level
+Tol_sparse=0.1; %tolerance for sparsity level
 
-lambda_high=1; %maximum bound for lambda
+%initialize FISTA
+x=0*CXY';
+y=x;
+L=2*max(eig(CXX)); %lipshitz constant
+
+%initialize binary search
+lambda_high=1e2*L; %maximum bound for lambda
 lambda_low=1e-4;  %minimum bound for lambda
 loop_cond=1;  %flag for while llop
 
@@ -22,11 +29,7 @@ while  loop_cond %binary search for lambda that give correct sparsity level
     end
 
 %%% FISTA
-%initialize
-x=0*CXY';
 t=1;
-y=x;
-L=2*max(eig(CXX)); %lipshitz constant
 
 for kk=1:iterations
     x_prev=x;
@@ -38,7 +41,7 @@ end
 %%% 
 
 
-    sparsity_measure=mean(~~x(:)); 
+    sparsity_measure=mean(~~x(:))
     cond=sparsity_measure<sparsity;
     loop_cond=(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
     if sparsity==1

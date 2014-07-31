@@ -28,8 +28,8 @@ ylabel('Estimated weights')
 [MSE2,correlation2,SIGN_ERROR2] = GetWeightsErrors( W,EW2 )
 
 title({[' EW corr =' num2str(correlation) ', EW2 corr =' num2str(correlation2)]; ...
-     [' EW MSE =' num2str(MSE) ', EW2 MSE =' num2str(MSE2)]; ...
-     [' EW SE =' num2str(SIGN_ERROR) ', EW2 SE =' num2str(SIGN_ERROR2) ]});
+     [' EW MSE =' num2str(MSE) ', VB MSE =' num2str(MSE2)]; ...
+     [' EW SE =' num2str(SIGN_ERROR) ', VB SE =' num2str(SIGN_ERROR2) ]});
 hold all
 %%
 % [~, ind]=max(EW(:));
