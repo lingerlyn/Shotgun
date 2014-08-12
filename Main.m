@@ -6,6 +6,8 @@ clc
 
 %% Set params - later write a function for several default values
 addpath('Misc')
+addpath('GenerateConnectivity')
+
 
 %Network parameters
 N=99; %number of neurons
@@ -59,6 +61,11 @@ if ~isempty(sbm)
     est_priors.ss2=sbm.str_var*ones(N)*weight_scale^2;
     est_priors.noise_var=sbm.noise_var*ones(N,1);
     est_priors.a=spar*ones(N);
+else
+    est_priors.eta=zeros(N); %means
+    est_priors.ss2=.05*ones(N); %slab variance
+    est_priors.noise_var=.09*ones(N,1); %noise variance
+    est_priors.a=spar*ones(N);%.2*ones(N); %sparsity
 end
 
 % Combine all parameters 
