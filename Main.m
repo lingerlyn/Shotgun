@@ -6,30 +6,28 @@ clc
 
 %% Set params - later write a function for several default values
 addpath('Misc')
-addpath('GenerateConnectivity')
-addpath('GenerateSpikes');
 
 %Network parameters
-N=51; %number of neurons
+N=99; %number of neurons
 spar =0.2; %sparsity level; 
 bias=0; %bias 
 seed_weights=1; % random seed
-weight_scale=0.1; % scale of weights
+weight_scale=0.05; % scale of weights
 conn_type='block';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=1e5; %timesteps
+T=1e3; %timesteps
 T0=0; %burn-in time 
-sample_ratio=0.1; %fraction of observed neurons per time step
-neuron_type='sign'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
+sample_ratio=1; %fraction of observed neurons per time step
+neuron_type='linear'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
 sample_type='fully_random';
 seed_spikes=1;
 seed_sample=1;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes);
 
 % Sufficeint Statistics Estimation flags
-glasso=0; %use glasso?
+glasso=1; %use glasso?
 restricted_penalty=0; % use a restricted l1 penality in lasso (only on parts of the inv_COV matrix)?
 pos_def=0; % use positive semidefinite projection?
 est_spar=spar; % estimated sparsity level. If empty, we "cheat". We just use the prior (not it is not accurate in some types of matrices, due to long range connections), and increase it a bit to reduce shrinkage
@@ -48,7 +46,6 @@ else
     sbm=[];
 end
 
-est_priors=[];
 if ~isempty(sbm)
 
 % Connectivity Estimation prior parameters
@@ -68,10 +65,12 @@ end
 params=v2struct(connectivity,spike_gen,stat_flags,est_priors,sbm);
 
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
+addpath('GenerateConnectivity')
 W=GetWeights(N,conn_type,spar, seed_weights,weight_scale,params);
 bias=bias*ones(N,1); %set bias
 
 %% Generate Spikes
+addpath('GenerateSpikes');
 spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type);
 sampled_spikes=SampleSpikes(spikes,sample_ratio,sample_type,seed_sample);
 
