@@ -16,25 +16,25 @@ iterations=30;
 Tol_sparse=0.1; %tolerance for sparsity level
 maxIter=500;
 
-%initialize FISTA
-if isempty(xinit)
-    x=0*CXY';
-    y=x;
-else
-    x=xinit;
-    y=x;
-end
 L=2*max(eig(CXX))+l2; %lipshitz constant. compensate for the added term
+
+%save intermediate results for debugging
+xsolns=zeros(maxIter,length(CXY));
+lambdas=zeros(maxIter,1);
 
 %initialize binary search
 lambda_high=1e2*L; %maximum bound for lambda
 lambda_low=1e-4;  %minimum bound for lambda
-loop_cond=1;  %flag for while llop
+loop_cond=1;  %flag for while loop
 
 iter=0;
 while  loop_cond %binary search for lambda that give correct sparsity level
     iter=iter+1;
-    if iter>maxIter; EW=x; break; end
+    if iter>maxIter;
+        imagesc(xsolns); %see the behavior of the solutions
+        keyboard; 
+    end
+    
     if sparsity==1
         lambda=0;
     else
@@ -42,8 +42,17 @@ while  loop_cond %binary search for lambda that give correct sparsity level
     end
 
 %%% FISTA
-t=1;
 
+%initialize
+if isempty(xinit)
+    x=0*CXY';
+    y=x;
+else
+    x=xinit;
+    y=x;
+end
+
+t=1;
 for kk=1:iterations
     if kk==1
         P=Pinit;
@@ -57,9 +66,14 @@ for kk=1:iterations
     x=ThresholdOperator(u,lambda/L);
     if any(isnan(x))|| any(isinf(x)); keyboard; end
     t_next=(1+sqrt(1+4*t^2))/2;
-    y=x+((t-1)/t_next)*(x-x_prev);    
+    y=x+((t-1)/t_next)*(x-x_prev);
+    t=t_next;
 end
 %%% 
+
+    %store solutions
+    xsolns(iter,:)=x;
+    lambdas(iter)=lambda;
 
 
     sparsity_measure=mean(~~x(:));
@@ -97,4 +111,3 @@ function y = ThresholdOperator( x , lambda )
 
 
 end
-
