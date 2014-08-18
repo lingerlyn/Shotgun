@@ -8,7 +8,7 @@ function EW=EstimateA_L1(CXX,CXY,sparsity)
 % EW: ML estimate of weights
 
 %params
-iterations=30;
+iterations=100;
 Tol_sparse=0.1; %tolerance for sparsity level
 
 %initialize FISTA
@@ -32,6 +32,7 @@ while  loop_cond %binary search for lambda that give correct sparsity level
 t=1;
 
 for kk=1:iterations
+    t=t_next;
     x_prev=x;
     u=y-(2/L)*(y*CXX-CXY');
     x=ThresholdOperator(u,lambda/L);
