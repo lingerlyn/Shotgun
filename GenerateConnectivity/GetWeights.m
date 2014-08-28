@@ -22,7 +22,7 @@ switch network_type
         NN_range=5;
         A = construct_weights_circ_NN(N,NN_range);
     case 'rand'
-        A=randn(N).*(rand(N)<spar);
+        A=randn(N).*(rand(N)<spar)/(sqrt(N*spar));
     case 'block'
         nTypes=length(params.sbm.blockFracs);
         str_mean=params.sbm.abs_mean*ones(nTypes)-2*params.sbm.abs_mean*eye(nTypes); %hard-coded pattern

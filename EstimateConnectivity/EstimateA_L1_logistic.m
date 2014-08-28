@@ -1,40 +1,30 @@
-function EW=EstimateA_L1_proj(CXX,CXY,S,sparsity,l2,Pinit,xinit)
+function EW=EstimateA_L1_logistic(CXX,CXY,rates,sparsity)
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
 % CXY - cross-covariance
-% S - matrix of slab means
+% rates - mean firing rates
 % sparsity - required sparsitiy level (percentage of non-zero enteries in EW)
-% l2 - projected L2 penalty term
-% Pinit - initial projection matrix
-% xinit - initial starting point
 % OUTPUTS:
 % EW: ML estimate of weights
 
 %params
-iterations=500;
-Tol_sparse=0.1; %tolerance for sparsity level
-maxIter=500;
+iterations=30;
+Tol_sparse=0.01; %tolerance for sparsity level
+N=length(rates);
 
-L=2*max(eig(CXX))+l2; %lipshitz constant. compensate for the added term
-
-%save intermediate results for debugging
-xsolns=zeros(maxIter,length(CXY));
-lambdas=zeros(maxIter,1);
+%initialize FISTA
+x=0*CXY';
+y=x;
+V=diag(rates);
+L=2*max(eig(V*CXX)); %lipshitz constant
 
 %initialize binary search
-lambda_high=1e2*L; %maximum bound for lambda
-lambda_low=1e-4;  %minimum bound for lambda
-loop_cond=1;  %flag for while loop
+lambda_high=max(1e4,1e2*L); %maximum bound for lambda
+lambda_low=min(1e-4,1e-2*L);  %minimum bound for lambda
+loop_cond=1;  %flag for while llop
 
-iter=0;
 while  loop_cond %binary search for lambda that give correct sparsity level
-    iter=iter+1;
-    if iter>maxIter;
-        imagesc(xsolns); %see the behavior of the solutions
-        keyboard; 
-    end
-    
     if sparsity==1
         lambda=0;
     else
@@ -42,39 +32,22 @@ while  loop_cond %binary search for lambda that give correct sparsity level
     end
 
 %%% FISTA
+t_next=1;
+mask=ones(N)-eye(N); % used to remove L1 penalty from diagonal
 
-%initialize
-if isempty(xinit)
-    x=0*CXY';
-    y=x;
-else
-    x=xinit;
-    y=x;
-end
-
-t=1;
 for kk=1:iterations
-    if kk==1
-        P=Pinit;
-    else
-        P=(~~x)';
-    end
-        
-    x_prev=x;
-%     u=y-(2/L)*(y*CXX-CXY');
-    u=y-(2/L)*(y*(CXX+diag(l2*P))-(CXY+l2*S.*P)');
-    x=ThresholdOperator(u,lambda/L);
-    if any(isnan(x))|| any(isinf(x)); keyboard; end
-    t_next=(1+sqrt(1+4*t^2))/2;
-    y=x+((t-1)/t_next)*(x-x_prev);
     t=t_next;
+    x_prev=x;
+    u=y-(2/L)*(V*y*CXX-CXY');
+      
+    x=ThresholdOperator(u,mask*lambda/L);
+    if any(~isfinite(u(:)))
+        error('non finite x!')
+    end 
+    t_next=(1+sqrt(1+4*t^2))/2;
+    y=x+((t-1)/t_next)*(x-x_prev);    
 end
 %%% 
-
-    %store solutions
-    xsolns(iter,:)=x;
-    lambdas(iter)=lambda;
-
 
     sparsity_measure=mean(~~x(:))
     cond=sparsity_measure<sparsity;
@@ -111,3 +84,4 @@ function y = ThresholdOperator( x , lambda )
 
 
 end
+

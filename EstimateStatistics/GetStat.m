@@ -1,4 +1,4 @@
-function [ CXX, CXY,W,eye_mat,mY,mYn] = GetStat( sampled_spikes,glasso,restricted_penalty,pos_def,sparsity,true_W)
+function [ CXX, CXY,W,rates,obs_count] = GetStat( sampled_spikes,observations,glasso,restricted_penalty,pos_def,sparsity,true_W)
 % inputs:
 % sampled_spikes -NxT observed spikes (with NaNs in unobsereved samples)
 % glasso - flag that indicate whether or not use glasso
@@ -10,6 +10,8 @@ function [ CXX, CXY,W,eye_mat,mY,mYn] = GetStat( sampled_spikes,glasso,restricte
 % Cxx  - NxN matrix of estimated spike covariance at a single timestep
 % Cxy - NxN matrix of estimated spike cross-covariance  between two adjacent timesteps
 % W - infered weights matrix
+% rates - mean firing rates
+% obs_count - observation count for each neuron
 
 
 % internal parameters
@@ -21,32 +23,15 @@ Tol_sparse=1e-2; % tolerance for sparsity of W
 [N, T] = size(sampled_spikes);
 
 %initialize the sufficient statistics arrays
-XX=zeros(N);
-XXn=zeros(N);
-XY=zeros(N);
-XYn=zeros(N);
-mY=zeros(N,1);
-mYn=zeros(N,1);
-
+observations=double(observations);
+XX=sampled_spikes*sampled_spikes';
+XXn=observations*observations';
+XY=sampled_spikes(:,1:(end-1))*(sampled_spikes(:,2:end))';
+XYn=observations(:,1:(end-1))*(observations(:,2:end))';
+mY=sum(sampled_spikes,2);
+mYn=sum(observations,2);
 
 %% Calculate sufficient stats
-
-g = find(~isnan(sampled_spikes(:,1)));
-sg = double(sampled_spikes(g,1));
-for t = 2:T
-    f = g;
-    sf = sg;
-    g = find(~isnan(sampled_spikes(:,t)));
-    sg = double(sampled_spikes(g,t));
-    
-    XX(f,f)=XX(f,f)+sf*sf';
-    XXn(f,f)=XXn(f,f)+1;    
-    XY(f,g)=XY(f,g)+sf*sg';
-    XYn(f,g)=XYn(f,g)+1;
-    
-    mY(g)=mY(g)+sg;
-    mYn(g)=mYn(g)+1;
-end
 
 rates=mY./(mYn+eps); %estimate the mean firing rates
 CXX=XX./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
@@ -134,15 +119,13 @@ if glasso==1
     
         CXY = COV_res(1:N,N+1:end);%%%%%
         CXX = COV_res(1:N,1:N);%%%%%
-        W=-inv_COV_res((N+1):end,1:N);
-        eye_mat=inv_COV_res((N+1):end,(N+1):end);
-    
+        W=-inv_COV_res((N+1):end,1:N);            
     else
         CXY = COV(1:N,N+1:end);%%%%%
         CXX = COV(1:N,1:N);%%%%%
-        W=-inv_COV((N+1):end,1:N); % W estimate without glasso
-        eye_mat=eye(N);  %estimate without glasso
+        W=-inv_COV((N+1):end,1:N); % W estimate without glasso        
 end
 
+obs_count=mYn;
 end
 

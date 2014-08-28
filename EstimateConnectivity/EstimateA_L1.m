@@ -29,9 +29,10 @@ while  loop_cond %binary search for lambda that give correct sparsity level
     end
 
 %%% FISTA
-t=1;
+t_next=1;
 
 for kk=1:iterations
+    t=t_next;
     x_prev=x;
     u=y-(2/L)*(y*CXX-CXY');
     x=ThresholdOperator(u,lambda/L);

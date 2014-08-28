@@ -13,10 +13,16 @@ switch type
         spikes=network_simulation_linear(W,bias,T,T0,seed);
     case 'linear_reg'
         spikes=regression_simulation_linear(W,bias,T,seed);
-  case 'sign'
+    case 'sign'
         spikes=network_simulation_sign(W,bias,T,T0,seed);
+    case 'Poisson'
+        spikes=network_simulation_Poisson(W,bias,T,T0,seed);
     case 'logistic'
         spikes=network_simulation_logistic(W,bias,T,T0,seed);
+end
+
+if any(~isfinite(spikes(:)))
+    error('spikes contain non-finite or not defined values')
 end
 
 end
