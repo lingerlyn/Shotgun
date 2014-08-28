@@ -25,10 +25,13 @@ switch network_type
         A=randn(N).*(rand(N)<spar)/(sqrt(N*spar));
     case 'block'
         nTypes=length(params.sbm.blockFracs);
-        str_mean=params.sbm.abs_mean*ones(nTypes)-2*params.sbm.abs_mean*eye(nTypes); %hard-coded pattern
         str_var=params.sbm.str_var*ones(nTypes);
         seed=randi(1000);
-        A=construct_block_weights(N,params.sbm.blockFracs,str_mean,str_var,params.sbm.pconn,seed);
+        if params.connectivity.DistDep
+            A=construct_block_weights(N,params.sbm.blockFracs,params.sbm.block_means,str_var,ones(params.sbm.nblocks),seed); %delete connections later on
+        else
+            A=construct_block_weights(N,params.sbm.blockFracs,params.sbm.block_means,str_var,params.sbm.pconn,seed);
+        end
     otherwise
         error('unknown connectivity type!')
 end

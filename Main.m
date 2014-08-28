@@ -13,10 +13,13 @@ N=99; %number of neurons
 N_stim=10; %number of stimulation sources
 spar =0.1; %sparsity level; 
 bias=-3*ones(N,1)+1*randn(N,1); %bias 
+target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights
 conn_type='block';
-connectivity=v2struct(N,spar,bias,seed_weights,N_stim);
+Realistic=1; %Adhere to Dale's law and add a negative diagonal
+DistDep=0;
+connectivity=v2struct(N,spar,bias,seed_weights,DistDep,Realistic);
 
 % Spike Generation parameters
 T=1e5; %timesteps
@@ -39,16 +42,26 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 % SBM parameters
 if strcmp(conn_type,'block')
     blockFracs=[1/3;1/3;1/3];
+    nblocks=length(blockFracs);
     abs_mean=1;
     str_var=.5;
     noise_var=1;
-    pconn=spar*ones(length(blockFracs));
-    sbm=v2struct(blockFracs,abs_mean,str_var,noise_var,pconn);
+    pconn=spar*ones(nblocks);
+    
+    %Dale's law
+    if Realistic
+        block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -ones(nblocks,1) ones(nblocks,1)];
+        c=-2*abs_mean*weight_scale; %self-inhibition.
+        sbm=v2struct(blockFracs,abs_mean,str_var,noise_var,pconn,block_means,c);
+    else
+        block_means=abs_mean*(ones(nblocks)-2*eye(nblocks)); %default blockmodel
+        sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means);
+    end
+   
 else
     sbm=[];
 end
 
-est_priors=[];
 if ~isempty(sbm)
 
 % Connectivity Estimation prior parameters
@@ -56,20 +69,49 @@ if ~isempty(sbm)
     if naive
         est_priors.eta=zeros(N); 
     else
-        str_mean=(abs_mean*ones(length(blockFracs))-2*abs_mean*eye(length(blockFracs)))*weight_scale; %this structure is hard-coded into the sbm for now
-        est_priors.eta=GetBlockMeans(N,blockFracs,str_mean); 
+%         str_mean=(abs_mean*ones(length(blockFracs))-2*abs_mean*eye(length(blockFracs)))*weight_scale; %default block structure
+        est_priors.eta=GetBlockMeans(N,blockFracs,sbm.block_means)*weight_scale;
+        if Realistic
+            est_priors.eta(~~eye(N))=c;
+        end
+
     end
     est_priors.ss2=sbm.str_var*ones(N)*weight_scale^2;
     est_priors.noise_var=sbm.noise_var*ones(N,1);
-    est_priors.a=spar*ones(N);
+    est_priors.a=GetBlockMeans(N,blockFracs,sbm.pconn);
+else
+    est_priors=[];
 end
 
 % Combine all parameters 
 params=v2struct(connectivity,spike_gen,stat_flags,est_priors,sbm);
-
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
 W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,params);
+
+if Realistic %add self-inhibition diag
+    temp=W(1:N,1:N);
+    temp(~~eye(N))=c+randn(N,1)*sqrt(str_var)*weight_scale*.1; %10x less variance
+    W(1:N,1:N)=temp;
+end
+
+if ~isempty(target_rates)
+    bias=GetBiases(W,target_rates);
+end
+
+%% Distance-depdendent Connectivity
+sigm=@(z) 1./(1+exp(-z));
+distfun=@(a,b,x) sigm(a*x+b);
+
+if DistDep
+    a=-5;
+    b=.5;
+    
+    %Generate some uniform random distances
+    D=triu(rand(N),1); D=D+D'; DD=distfun(a,b,D);
+    W(1:N,1:N)=W(1:N,1:N).*(DD>rand(N));
+    
+end
 
 %% Generate Spikes
 addpath('GenerateSpikes');
