@@ -1,4 +1,4 @@
-function A = GetWeights( N,network_type,spar, seed,scale,params)
+function W = GetWeights( N,network_type,spar, seed,scale,N_stim,params)
 %GetWeights Summary of this function goes here
 % N - number of neurons
 % network_type - what kind of connectivity to use (note each connectivity has additional parameters)
@@ -33,7 +33,9 @@ switch network_type
         error('unknown connectivity type!')
 end
 
-A=A*scale;
+    A=A*scale;
+    G=rand(N,N_stim);
+    W=[A, G; zeros(N_stim,N_stim+N)]; 
 
 end
 

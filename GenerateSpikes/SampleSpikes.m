@@ -1,4 +1,4 @@
-function observations=SampleSpikes(N,T,sampled_ratio,sample_type,seed)
+function observations=SampleSpikes(N,T,sampled_ratio,sample_type,N_stim,seed)
 % inputs:
 % spikes - NxT spikes matrix
 % sample_ratio - perscent of observed neurons
@@ -46,5 +46,5 @@ RandStream.setGlobalStream(stream);
             error('unknown sample_type!!');
     end    
     
-    observations=~ind;
+    observations=[~ind; ones(N_stim,T)];
 end

@@ -10,12 +10,13 @@ addpath('EstimateConnectivity')
 
 %Network parameters
 N=99; %number of neurons
+N_stim=10; %number of stimulation sources
 spar =0.1; %sparsity level; 
 bias=-3*ones(N,1)+1*randn(N,1); %bias 
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights
 conn_type='block';
-connectivity=v2struct(N,spar,bias,seed_weights);
+connectivity=v2struct(N,spar,bias,seed_weights,N_stim);
 
 % Spike Generation parameters
 T=1e5; %timesteps
@@ -23,9 +24,10 @@ T0=0; %burn-in time
 sample_ratio=0.2; %fraction of observed neurons per time step
 neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
 sample_type='fully_random';
+stim_type='pulses';
 seed_spikes=1;
 seed_sample=1;
-spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes);
+spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type);
 
 % Sufficeint Statistics Estimation flags
 glasso=0; %use glasso?
@@ -67,12 +69,12 @@ params=v2struct(connectivity,spike_gen,stat_flags,est_priors,sbm);
 
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
-W=GetWeights(N,conn_type,spar, seed_weights,weight_scale,params);
+W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,params);
 
 %% Generate Spikes
 addpath('GenerateSpikes');
-spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type);
-observations=SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1);
+spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type,N_stim,stim_type);
+observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
 
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
@@ -87,11 +89,19 @@ addpath('EstimateConnectivity');
 % [EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,obs_count,est_priors);
 % EW2=Cxy'/Cxx;
 % EW2=EstimateA_L1(Cxx,Cxy,est_spar);
-EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar);
+EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim);
 Ebias=GetBias( EW,Cxx,rates);
 [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
 EW2=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
+
+%% Remove stimulus parts
+W=W(1:N,1:N);
+EW=EW(1:N,1:N);
+EW2=EW2(1:N,1:N);
+Ebias=Ebias(1:N);
+Ebias2=Ebias2(1:N);
+spikes=spikes(1:N,:);
 %% Save Results
 t_elapsed=toc
 params.t_elapsed=t_elapsed;

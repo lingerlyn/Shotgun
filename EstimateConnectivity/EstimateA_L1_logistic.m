@@ -1,4 +1,4 @@
-function EW=EstimateA_L1_logistic(CXX,CXY,rates,sparsity)
+function EW=EstimateA_L1_logistic(CXX,CXY,rates,sparsity,N_stim)
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
@@ -20,8 +20,8 @@ V=diag(rates);
 L=2*max(eig(V*CXX)); %lipshitz constant
 
 %initialize binary search
-lambda_high=max(1e4,1e2*L); %maximum bound for lambda
-lambda_low=min(1e-4,1e-2*L);  %minimum bound for lambda
+lambda_high=max(1e8,1e2*L); %maximum bound for lambda
+lambda_low=min(1e-8,1e-2*L);  %minimum bound for lambda
 loop_cond=1;  %flag for while llop
 
 while  loop_cond %binary search for lambda that give correct sparsity level
@@ -49,7 +49,8 @@ for kk=1:iterations
 end
 %%% 
 
-    sparsity_measure=mean(~~x(:))
+    temp=~~x(1:(end-N_stim),1:(end-N_stim));
+    sparsity_measure=mean(temp(:));
     cond=sparsity_measure<sparsity;
     loop_cond=(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
     if sparsity==1
