@@ -4,20 +4,22 @@ clc
 tic
 % T_array=1e4*(1:100);
 
+
 %% Set params - later write a function for several default values
 addpath('Misc')
 addpath('EstimateConnectivity')
 
 %Network parameters
 N=99; %number of neurons
-N_stim=10; %number of stimulation sources
+N_stim=0; %number of stimulation sources
 spar =0.1; %sparsity level; 
 bias=-3*ones(N,1)+1*randn(N,1); %bias 
+% bias=[]; %if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights
 conn_type='block';
-Realistic=1; %Adhere to Dale's law and add a negative diagonal
+Realistic=0; %Adhere to Dale's law and add a negative diagonal
 DistDep=0;
 connectivity=v2struct(N,spar,bias,seed_weights,DistDep,Realistic);
 
@@ -39,12 +41,16 @@ pos_def=1; % use positive semidefinite projection?
 est_spar=spar; % estimated sparsity level. If empty, we "cheat". We just use the prior (not it is not accurate in some types of matrices, due to long range connections), and increase it a bit to reduce shrinkage
 stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 
+% Connectivity Estimation Flags
+pen_diag=1; %penalize diagonal entries in fista
+warm=0; %use warm starts in fista
+
 % SBM parameters
 if strcmp(conn_type,'block')
     blockFracs=[1/3;1/3;1/3];
     nblocks=length(blockFracs);
     abs_mean=1;
-    str_var=.5;
+    str_var=.2;
     noise_var=1;
     pconn=spar*ones(nblocks);
     
@@ -96,7 +102,7 @@ if Realistic %add self-inhibition diag
 end
 
 if ~isempty(target_rates)
-    bias=GetBiases(W,target_rates);
+    bias=GetBiases(W,target_rates*ones(N,1));
 end
 
 %% Distance-depdendent Connectivity
@@ -124,14 +130,14 @@ sampled_spikes=observations.*spikes;
 % sampled_spikes=sparse(observations.*spikes);
 %% Estimate sufficeint statistics
 addpath('EstimateStatistics')
-[Cxx, Cxy,EW,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
+[Cxx, Cxy,glassoEW,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
 % Ebias=GetBias( EW,Cxx,rates);
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
 % [EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,obs_count,est_priors);
 % EW2=Cxy'/Cxx;
 % EW2=EstimateA_L1(Cxx,Cxy,est_spar);
-EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim);
+EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
 [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
 EW2=diag(amp)*EW;

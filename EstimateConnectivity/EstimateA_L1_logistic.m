@@ -1,10 +1,13 @@
-function EW=EstimateA_L1_logistic(CXX,CXY,rates,sparsity,N_stim)
+function EW=EstimateA_L1_logistic(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm)
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
 % CXY - cross-covariance
 % rates - mean firing rates
 % sparsity - required sparsitiy level (percentage of non-zero enteries in EW)
+% N_stim - number of stimuli
+% pen_dial - 1 if we want to penalize diagonal entries; 0 otherwise
+% warm - 1 if we want to do warm starts within FISTA; 0 otherwise
 % OUTPUTS:
 % EW: ML estimate of weights
 
@@ -32,8 +35,17 @@ while  loop_cond %binary search for lambda that give correct sparsity level
     end
 
 %%% FISTA
+if ~warm
+    x=0*CXY';
+    y=x;
+end
+    
+if pen_diag
+    mask=ones(N);
+else  
+    mask=ones(N)-eye(N); % used to remove L1 penalty from diagonal
+end
 t_next=1;
-mask=ones(N)-eye(N); % used to remove L1 penalty from diagonal
 
 for kk=1:iterations
     t=t_next;
