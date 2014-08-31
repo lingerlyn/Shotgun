@@ -1,4 +1,4 @@
-function EW=EstimateA_L1_proj(CXX,CXY,S,sparsity,l2,Pinit,xinit)
+function [EW,maxiterflag]=EstimateA_L1_proj(CXX,CXY,S,sparsity,l2,Pinit,xinit)
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
@@ -12,9 +12,10 @@ function EW=EstimateA_L1_proj(CXX,CXY,S,sparsity,l2,Pinit,xinit)
 % EW: ML estimate of weights
 
 %params
-iterations=500;
+iterations=30;
 Tol_sparse=0.1; %tolerance for sparsity level
 maxIter=500;
+maxiterflag=0;
 
 L=2*max(eig(CXX))+l2; %lipshitz constant. compensate for the added term
 
@@ -31,8 +32,10 @@ iter=0;
 while  loop_cond %binary search for lambda that give correct sparsity level
     iter=iter+1;
     if iter>maxIter;
-        imagesc(xsolns); %see the behavior of the solutions
-        keyboard; 
+%         imagesc(xsolns); %see the behavior of the solutions
+        maxiterflag=1;
+        EW=x; break;
+%         keyboard; 
     end
     
     if sparsity==1
@@ -76,7 +79,7 @@ end
     lambdas(iter)=lambda;
 
 
-    sparsity_measure=mean(~~x(:))
+    sparsity_measure=mean(~~x(:));
     cond=sparsity_measure<sparsity;
     loop_cond=(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
     if sparsity==1
@@ -84,9 +87,9 @@ end
     end
 
     if cond
-        lambda_high=lambda
+        lambda_high=lambda;
     else
-        lambda_low=lambda
+        lambda_low=lambda;
     end
 end
         
