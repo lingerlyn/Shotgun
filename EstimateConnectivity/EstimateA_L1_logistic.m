@@ -52,7 +52,7 @@ for kk=1:iterations
     x_prev=x;
     u=y-(2/L)*(V*y*CXX-CXY');
       
-    x=ThresholdOperator(u,mask*lambda/L);
+    x=ThresholdOperator(u,mask.*lambda/L);
     if any(~isfinite(u(:)))
         error('non finite x!')
     end 
