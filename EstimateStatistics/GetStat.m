@@ -35,9 +35,9 @@ mYn=sum(observations,2);
 
 rates=mY./(mYn+eps); %estimate the mean firing rates
 CXX=XX./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
-CXX((XXn<10))=0;%set elements to zero that haven't been observed sufficiently
+% CXX((XXn<10))=0;%set elements to zero that haven't been observed sufficiently
 CXY=XY./(XYn+eps)-rates*rates'; %estimate cross-covariance
-CXY((XYn<10))=0;
+% CXY((XYn<10))=0;
 COV = [CXX CXY; CXY' CXX];
 
 if(any(eig(COV)<0))
