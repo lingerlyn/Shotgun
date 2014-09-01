@@ -8,8 +8,8 @@ switch stim_type
     case 'pulses'
         T_pulse=1e2;
         duty_cycle=0.3;
-        pulse_mag=0;
-        pulse_std=0.1;
+        pulse_mag=0.2;
+        pulse_std=0.2;
         
         t_cycle=mod(1:T,T_pulse)>T_pulse*duty_cycle;
         stim=bsxfun(@times,(pulse_mag+pulse_std*randn(N_stim,T)),t_cycle);      

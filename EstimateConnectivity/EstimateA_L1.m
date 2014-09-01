@@ -70,6 +70,7 @@ function y = ThresholdOperator( x , lambda )
 % lambda - regularization constant
 
     temp=(1-lambda./abs(x));
+    temp(isnan(temp))=1; %for cases where lambda=x=0 in some components
     y=temp.*x;
     y(temp<0)=0;
     

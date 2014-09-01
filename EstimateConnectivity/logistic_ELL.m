@@ -19,13 +19,13 @@ for kk=1:N %for each row in EW, find corrected amplitude and bias
     Enx=EW(kk,:)*(Cxy(:,kk)+rates*rates(kk));
     z=randn(L_z,1);
     x=sqrt(EW(kk,:)*Cxx*EW(kk,:)')*z+EW(kk,:)*rates;
-    [new_ab,~,exitflag]=fminunc(@(ab) twod_logistic_ELL_func(ab,Enx,En,x),[1;-1],options); %OK    
+    [new_ab,~,exitflag]=fminunc(@(ab) twod_logistic_ELL_func(ab,Enx,En,x),[0;0],options); %OK    
 %     disp(exitflag)    
     amp(kk)=new_ab(1); %gain
     bias(kk)=new_ab(2); %offset
     if exitflag~=1
        amp(kk)=1;
-       bias(kk)=NaN;
+       bias(kk)=NaN
     else
         
     end
