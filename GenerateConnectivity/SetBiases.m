@@ -1,4 +1,4 @@
-function c=GetBiases(A,target_rates)
+function c=SetBiases(A,target_rates)
 % Estimate the biases needed for each neuron to fire at its target rate.
 
 N=length(A);

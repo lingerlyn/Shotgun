@@ -13,14 +13,14 @@ addpath('EstimateConnectivity')
 N=99; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.1; %sparsity level; 
-bias=-3*ones(N,1)+1*randn(N,1); %bias 
+bias=-3.2*ones(N,1)+0.1*randn(N,1); %bias 
 % bias=[]; %if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights
 conn_type='block';
-Realistic=0; %Adhere to Dale's law and add a negative diagonal
-DistDep=0;
+Realistic=1; %Adhere to Dale's law and add a negative diagonal
+DistDep=1;
 connectivity=v2struct(N,spar,bias,seed_weights,DistDep,Realistic);
 
 % Spike Generation parameters
@@ -58,7 +58,7 @@ if strcmp(conn_type,'block')
     if Realistic
         block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -ones(nblocks,1) ones(nblocks,1)];
         c=-2*abs_mean*weight_scale; %self-inhibition.
-        sbm=v2struct(blockFracs,abs_mean,str_var,noise_var,pconn,block_means,c);
+        sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,c);
     else
         block_means=abs_mean*(ones(nblocks)-2*eye(nblocks)); %default blockmodel
         sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means);
@@ -102,7 +102,7 @@ if Realistic %add self-inhibition diag
 end
 
 if ~isempty(target_rates)
-    bias=GetBiases(W,target_rates*ones(N,1));
+    bias=SetBiases(W,target_rates*ones(N,1));
 end
 
 %% Distance-depdendent Connectivity
@@ -154,7 +154,7 @@ spikes=spikes(1:N,:);
 t_elapsed=toc
 params.t_elapsed=t_elapsed;
 file_name=GetName(params);  %need to make this a meaningful name
-save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','params');
+% save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','params');
 
 %% Plot
 Plotter
