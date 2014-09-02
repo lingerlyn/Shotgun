@@ -10,7 +10,7 @@ addpath('Misc')
 addpath('EstimateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
+N=51; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.6*ones(N,1)+0.2*randn(N,1); %bias 
@@ -18,7 +18,7 @@ bias=-1.6*ones(N,1)+0.2*randn(N,1); %bias
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights =1/sqrt(N*spar)
-conn_type='balanced';
+conn_type='block';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
@@ -42,6 +42,7 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 % Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
 warm=0; %use warm starts in fista
+conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
 if strcmp(conn_type,'block')
@@ -59,44 +60,26 @@ if strcmp(conn_type,'block')
         block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -2*ones(nblocks,1) ones(nblocks,1)];
 %         c=-2*abs_mean*weight_scale; %self-inhibition.
         c=-1*weight_scale;%self-inhibition.
-        sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,c);
+        MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
+        MeanMatrix(~~eye(N))=c;
+        sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,MeanMatrix,c);
     else
         block_means=abs_mean*(ones(nblocks)-2*eye(nblocks)); %default blockmodel
-        sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means);
+        MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
+        sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,MeanMatrix);
     end
-   
+    
 else
     sbm=[];
 end
 
-if ~isempty(sbm)
-
-% Connectivity Estimation prior parameters
-    naive=0; %use correct mean prior or zero mean prior
-    if naive
-        est_priors.eta=zeros(N); 
-    else
-%         str_mean=(abs_mean*ones(length(blockFracs))-2*abs_mean*eye(length(blockFracs)))*weight_scale; %default block structure
-        est_priors.eta=GetBlockMeans(N,blockFracs,sbm.block_means)*weight_scale;
-        if Realistic
-            est_priors.eta(~~eye(N))=c;
-        end
-
-    end
-    est_priors.ss2=sbm.str_var*ones(N)*weight_scale^2;
-    est_priors.noise_var=sbm.noise_var*ones(N,1);
-    est_priors.a=GetBlockMeans(N,blockFracs,sbm.pconn);
-else
-    est_priors=[];
-end
-
 % Combine all parameters 
-params=v2struct(connectivity,spike_gen,stat_flags,est_priors,sbm);
+params=v2struct(connectivity,spike_gen,stat_flags,conn_est_flags,sbm);
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
 W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,sbm);
 
-if Realistic %add self-inhibition diag
+if sbm.Realistic %add self-inhibition diag
     temp=W(1:N,1:N);
     temp(~~eye(N))=c+randn(N,1)*sqrt(str_var)*weight_scale*.1; %10x less variance
     W(1:N,1:N)=temp;
