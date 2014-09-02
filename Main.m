@@ -19,9 +19,7 @@ target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights =1/sqrt(N*spar)
 conn_type='balanced';
-Realistic=0; %Adhere to Dale's law and add a negative diagonal
-DistDep=0;
-connectivity=v2struct(N,spar,bias,seed_weights,DistDep,Realistic);
+connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
 T=2e5; %timesteps
@@ -47,6 +45,8 @@ warm=0; %use warm starts in fista
 
 % SBM parameters
 if strcmp(conn_type,'block')
+    Realistic=0; %Adhere to Dale's law and add a negative diagonal
+    DistDep=0;
     blockFracs=[1/3;1/3;1/3];
     nblocks=length(blockFracs);
     abs_mean=10^(-0.31);
@@ -62,7 +62,7 @@ if strcmp(conn_type,'block')
         sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,c);
     else
         block_means=abs_mean*(ones(nblocks)-2*eye(nblocks)); %default blockmodel
-        sbm=v2struct(blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means);
+        sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means);
     end
    
 else
@@ -94,7 +94,7 @@ end
 params=v2struct(connectivity,spike_gen,stat_flags,est_priors,sbm);
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
-W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,params);
+W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,sbm);
 
 if Realistic %add self-inhibition diag
     temp=W(1:N,1:N);

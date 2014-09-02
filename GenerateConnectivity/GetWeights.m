@@ -1,4 +1,4 @@
-function W = GetWeights( N,network_type,spar, seed,scale,N_stim,params)
+function W = GetWeights( N,network_type,spar, seed,scale,N_stim,sbmparams)
 %GetWeights Summary of this function goes here
 % N - number of neurons
 % network_type - what kind of connectivity to use (note each connectivity has additional parameters)
@@ -24,13 +24,13 @@ switch network_type
     case 'rand'
         A=randn(N).*(rand(N)<spar)/(sqrt(N*spar));
     case 'block'
-        nTypes=length(params.sbm.blockFracs);
-        str_var=params.sbm.str_var*ones(nTypes);
+        nTypes=length(sbmparams.blockFracs);
+        str_var=sbmparams.str_var*ones(nTypes);
         seed=randi(1000);
-        if params.connectivity.DistDep
-            A=construct_block_weights(N,params.sbm.blockFracs,params.sbm.block_means,str_var,ones(params.sbm.nblocks),seed); %delete connections later on
+        if sbmparams.DistDep
+            A=construct_block_weights(N,sbmparams.blockFracs,sbmparams.block_means,str_var,ones(sbmparams.nblocks),seed); %delete connections later on
         else
-            A=construct_block_weights(N,params.sbm.blockFracs,params.sbm.block_means,str_var,params.sbm.pconn,seed);
+            A=construct_block_weights(N,sbmparams.blockFracs,sbmparams.block_means,str_var,sbmparams.pconn,seed);
         end
     otherwise
         error('unknown connectivity type!')
