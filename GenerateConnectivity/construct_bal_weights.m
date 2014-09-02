@@ -18,14 +18,14 @@ total_conn = ceil(spar*N);
 %W = diag(unifrnd(-2,0,N,1)); % take diagonal weights to be negative
 W = -1*eye(N);
 
-not_obs_subset = (N_unobs+1):N;
-nearby_conn = ceil(total_conn*(1-lr_conn));
-for i = not_obs_subset
+obs_subset = (N_unobs+1):N;
+nearby_conn = ceil(total_conn*(1-lr_conn))-2;
+for i = obs_subset
     for j = 1:nearby_conn
             %            W(i,i+j)=unifrnd(-2,2,1,1);
             W(i,mod(i+j,N)+1)=normrnd(-1/total_conn,1);
     end
-    left_conn = total_conn - nearby_conn;
+    left_conn = total_conn - nearby_conn-3;
     other_conn = randsample(find(~W(i,:)),left_conn);
     %    W(i,other_conn)=unifrnd(-2,2,length(other_conn),1);
     W(i,other_conn)=2*ones(length(other_conn),1);
@@ -44,7 +44,7 @@ end
 
 for i = 1:N
     other_conn = randsample(find(~W(i,:)),1);
-    %    W(i,other_conn)=unifrnd(-2,2,length(other_conn),1);
+%        W(i,other_conn)=unifrnd(-2,2,length(other_conn),1);
     W(i,other_conn)=-sum(W(i,:));
     W(i,:) = W(i,:)/std(W(i,find(W(i,:))));
   

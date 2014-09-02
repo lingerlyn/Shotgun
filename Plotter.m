@@ -33,11 +33,11 @@ scatter(W(:),EW2(:))
 legend('x=y','EW','EW2')
 xlabel('True weights')
 ylabel('Estimated weights')
-[MSE,correlation,SE] = GetWeightsErrors( W,EW );
-[MSE2,correlation2,SE2] = GetWeightsErrors( W,EW2 );
+[R_squared,correlation,SE] = GetWeightsErrors( W,EW );
+[R_squared2,correlation2,SE2] = GetWeightsErrors( W,EW2 );
 
 title({[' EW corr =' num2str(correlation) ', EW2 corr =' num2str(correlation2)]; ...
-     [' EW MSE =' num2str(MSE) ', EW2 MSE =' num2str(MSE2)]; ...
+     [' EW MSE =' num2str(R_squared) ', EW2 MSE =' num2str(R_squared2)]; ...
      [' EW SE =' num2str(SE) ', EW2 SE =' num2str(SE2) ]});
 hold off
 
@@ -53,11 +53,11 @@ scatter(bias(:),Ebias2(:))
 legend('x=y','Ebias','Ebias2')
 xlabel('True bias')
 ylabel('Estimated bias')
-[MSE,correlation,SE] = GetWeightsErrors( bias,Ebias );
-[MSE2,correlation2,SE2] = GetWeightsErrors( bias,Ebias2 );
+[R_squared,correlation,SE] = GetWeightsErrors( bias,Ebias );
+[R_squared2,correlation2,SE2] = GetWeightsErrors( bias,Ebias2 );
 
 title({[' Eb corr =' num2str(correlation) ', Eb2 corr =' num2str(correlation2)]; ...
-     [' Eb MSE =' num2str(MSE) ', Eb2 MSE =' num2str(MSE2)]; ...
+     [' Eb MSE =' num2str(R_squared) ', Eb2 MSE =' num2str(R_squared2)]; ...
      [' Eb SE =' num2str(SE) ', Eb2 SE =' num2str(SE2) ]});
 
 hold off
