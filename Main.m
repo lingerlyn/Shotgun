@@ -79,7 +79,7 @@ params=v2struct(connectivity,spike_gen,stat_flags,conn_est_flags,sbm);
 addpath('GenerateConnectivity')
 W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,sbm);
 
-if sbm.Realistic %add self-inhibition diag
+if ~isempty(sbm) && sbm.Realistic %add self-inhibition diag
     temp=W(1:N,1:N);
     temp(~~eye(N))=c+randn(N,1)*sqrt(str_var)*weight_scale*.1; %10x less variance
     W(1:N,1:N)=temp;
@@ -93,7 +93,7 @@ end
 sigm=@(z) 1./(1+exp(-z));
 distfun=@(a,b,x) sigm(a*x+b);
 
-if DistDep
+if ~isempty(sbm) && sbm.DistDep
     a=-5;
     b=GetDistDepBias(a,spar);
 
