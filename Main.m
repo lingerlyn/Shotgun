@@ -102,9 +102,6 @@ if ~isempty(sbm) && sbm.DistDep
 %     figure; plot(D(:),DD(:)); %look at dist func
     W(1:N,1:N)=W(1:N,1:N).*(DD>rand(N));
     
-    WW=~~W(1:N,1:N);
-    disp(mean(WW(:)));
-    
 end
 
 %% Generate Spikes
