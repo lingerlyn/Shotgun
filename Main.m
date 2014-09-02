@@ -10,7 +10,7 @@ addpath('Misc')
 addpath('EstimateConnectivity')
 
 %Network parameters
-N=51; %number of neurons
+N=50; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.6*ones(N,1)+0.2*randn(N,1); %bias 
@@ -18,7 +18,7 @@ bias=-1.6*ones(N,1)+0.2*randn(N,1); %bias
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights =1/sqrt(N*spar)
-conn_type='block';
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
@@ -95,11 +95,15 @@ distfun=@(a,b,x) sigm(a*x+b);
 
 if DistDep
     a=-5;
-    b=.5;
-    
+    b=GetDistDepBias(a,spar);
+
     %Generate some uniform random distances
     D=triu(rand(N),1); D=D+D'; DD=distfun(a,b,D);
+%     figure; plot(D(:),DD(:)); %look at dist func
     W(1:N,1:N)=W(1:N,1:N).*(DD>rand(N));
+    
+    WW=~~W(1:N,1:N);
+    disp(mean(WW(:)));
     
 end
 
