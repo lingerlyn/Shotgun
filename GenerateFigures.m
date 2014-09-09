@@ -6,6 +6,7 @@ clc
 addpath('Results')
 addpath('Misc')
 addpath('GenerateSpikes');
+set(0,'DefaultTextInterpreter', 'latex');
 
 %% Figure 1 - Toy model 
 % In this figure:
@@ -14,8 +15,8 @@ addpath('GenerateSpikes');
 % firing rate~0.2   (~1Hz firing rate)
 % balanced network (no Dale's law yet)
 
-% observations_ratios= [1,0.5,0.2,0.1,0.05,0.02,0.01];
-observations_ratios= [1,0.5,0.1,0.05,0.01];
+observations_ratios= [1,0.5,0.2,0.1,0.05,0.02];
+% observations_ratios= [1,0.5,0.1,0.05,0.01];
 L=length(observations_ratios);
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};
@@ -52,21 +53,21 @@ for ii=1:L
     scatter(W(:),EW2(:),'b.')
     axis([mi ma mi ma])
     hold off
-%     legend('x=y','EW','EW2')
+%     legend('x=y','EW2','EW22')
     xlabel('W')
     ylabel('$\hat{W}$')
 
     
    subplot(L+1,K,K*ii+5)
      [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW2 );
-%     [MSE2,correlation2,SE2] = GetWeightsErrors( W,EW2 );
+%     [MSE2,correlation2,SE2] = GetWeightsErrors( W,EW22 );
 
     bar( [R,correlation, zero_matching,sign_matching] );    
     ylim([0 1])
-    set(gca, 'XTickLabel', x_ticks);
-%     title({[' EW corr =' num2str(correlation) ', EW2 corr =' num2str(correlation2)]; ...
-%          [' EW MSE =' num2str(MSE) ', EW2 MSE =' num2str(MSE2)]; ...
-%          [' EW SE =' num2str(SE) ', EW2 SE =' num2str(SE2) ]});
+    set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
+%     title({[' EW2 corr =' num2str(correlation) ', EW22 corr =' num2str(correlation2)]; ...
+%          [' EW2 MSE =' num2str(MSE) ', EW22 MSE =' num2str(MSE2)]; ...
+%          [' EW2 SE =' num2str(SE) ', EW22 SE =' num2str(SE2) ]});
 %     hold off
 
     
@@ -77,4 +78,4 @@ for ii=1:L
     
 end
 
- Export2Folder('Fig1.pdf','Figures') 
+Export2Folder('Fig1_alt.pdf','Figures') 
