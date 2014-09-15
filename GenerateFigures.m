@@ -15,8 +15,8 @@ set(0,'DefaultTextInterpreter', 'latex');
 % firing rate~0.2   (~1Hz firing rate)
 % balanced network (no Dale's law yet)
 
-% observations_ratios= [1,0.5,0.2,0.1,0.05,0.02];
-observations_ratios= [1,0.2,0.1,0.05];
+% observations_ratios= [1,0.5,0.2,0.1,0.04,0.02];
+observations_ratios= [1,0.2,0.1,0.04];
 L=length(observations_ratios);
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};

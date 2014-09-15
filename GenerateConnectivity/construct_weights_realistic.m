@@ -44,7 +44,7 @@ for jj = excite_subset
     end
     left_conn = total_conn - nearby_conn;
     other_conn = randsample(find(~W(:,jj)),left_conn);
-    W(other_conn,jj)=exp(mu+randn(size(other_conn))*si);
+    W(other_conn,jj)=unifrnd(0,1);%exp(mu+randn(size(other_conn))*si);
 end
 
 for jj = inhib_subset 
@@ -56,7 +56,7 @@ for jj = inhib_subset
                 W(index_i,jj)=-unifrnd(0,1); %exp(mu+randn*si);
             else
                 index_i=randsample(excite_subset,1);
-                W(index_i,jj)=-IE_ratio*unifrnd(0,1); %exp(mu+randn*si);
+                W(index_i,jj)=-unifrnd(0,1); %exp(mu+randn*si);
             end
     end
 end
