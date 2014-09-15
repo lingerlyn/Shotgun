@@ -19,7 +19,7 @@ target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1/sqrt(2*N*spar); % scale of weights 
 conn_type='realistic';
-connectivity=v2struct(N,spar,bias,seed_weights);
+connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
 T=2e5; %timesteps
@@ -30,7 +30,7 @@ sample_type='spatially_random';% 'fixed_subset';%;
 stim_type='pulses';
 seed_spikes=1;
 seed_sample=1;
-spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type);
+spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, neuron_type);
 
 % Sufficeint Statistics Estimation flags
 glasso=0; %use glasso?
