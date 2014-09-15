@@ -18,8 +18,8 @@ bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1/sqrt(2*N*spar); % scale of weights 
-conn_type='balanced';
-connectivity=v2struct(N,spar,bias,seed_weights);
+conn_type='realistic';
+connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
 T=1e5; %timesteps
@@ -29,8 +29,8 @@ neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
 sample_type='random_fixed_subset';% 'fixed_subset';%;
 stim_type='pulses';
 seed_spikes=1;
-seed_sample=10;
-spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type);
+seed_sample=1;
+spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, neuron_type);
 
 % Sufficeint Statistics Estimation flags
 glasso=0; %use glasso?
