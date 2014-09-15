@@ -24,6 +24,9 @@ RandStream.setGlobalStream(stream);
             ind=rand(N,T)<unsampled_ratio;
         case 'fixed_subset'
             ind(ceil(N*sampled_ratio):end,:)=1;
+        case 'random_fixed_subset'
+            temp=randperm(N);
+            ind(temp(ceil(N*sampled_ratio):end),:)=1;
         case 'random_NN_blocks'
             K=floor(unsampled_ratio*N/2);
             for tt=1:T                

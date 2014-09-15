@@ -11,25 +11,25 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
+N=500; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1/sqrt(2*N*spar); % scale of weights 
-conn_type='realistic';
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=2e5; %timesteps
+T=1e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=1; %fraction of observed neurons per time step
+sample_ratio=0.1; %fraction of observed neurons per time step
 neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
-sample_type='spatially_random';% 'fixed_subset';%;
+sample_type='random_fixed_subset';% 'fixed_subset';%;
 stim_type='pulses';
 seed_spikes=1;
-seed_sample=1;
+seed_sample=10;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type);
 
 % Sufficeint Statistics Estimation flags
@@ -113,6 +113,17 @@ sampled_spikes=observations.*spikes;
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
 % sampled_spikes=sparse(observations.*spikes);
+%% Handle case of fix obsereved subset
+if strcmp(sample_type,'fixed_subset')||strcmp(sample_type,'random_fixed_subset')
+    ind=any(observations,2);    
+    W=W(ind,ind);
+    bias=bias(ind);
+    spikes=spikes(ind,1:end);
+    sampled_spikes=sampled_spikes(ind,1:end);
+    observations=observations(ind,1:end);
+    est_spar=nnz(W)/sum(ind)^2; %correct sparsity estimation. Cheating????
+end
+
 %% Estimate sufficeint statistics
 addpath('EstimateStatistics')
 [Cxx, Cxy,glassoEW,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
@@ -130,12 +141,14 @@ EW2=diag(amp)*EW;
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %% Remove stimulus parts
-W=W(1:N,1:N);
-EW=EW(1:N,1:N);
-EW2=EW2(1:N,1:N);
-Ebias=Ebias(1:N);
-Ebias2=Ebias2(1:N);
-spikes=spikes(1:N,:);
+if (N_stim>0)&&(~strcmp(sample_type,'fixed_subset'))&&(~strcmp(sample_type,'random_fixed_subset'))
+    W=W(1:N,1:N);
+    EW=EW(1:N,1:N);
+    EW2=EW2(1:N,1:N);
+    Ebias=Ebias(1:N);
+    Ebias2=Ebias2(1:N);
+    spikes=spikes(1:N,:);
+end
 %% Save Results
 t_elapsed=toc
 params.t_elapsed=t_elapsed;
@@ -143,4 +156,4 @@ file_name=GetName(params);  %need to make this a meaningful name
 save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','Ebias2','params');
 
 %% Plot
-% Plotter
+Plotter
