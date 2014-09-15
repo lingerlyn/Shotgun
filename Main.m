@@ -11,7 +11,7 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
+N=5e3; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
@@ -22,9 +22,9 @@ conn_type='realistic';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=5e5; %timesteps
+T=2e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.05; %fraction of observed neurons per time step
+sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
 sample_type='spatially_random';% 'fixed_subset';%;
 stim_type='pulses';
@@ -143,4 +143,4 @@ file_name=GetName(params);  %need to make this a meaningful name
 save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','Ebias2','params');
 
 %% Plot
-Plotter
+% Plotter
