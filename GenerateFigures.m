@@ -15,8 +15,8 @@ set(0,'DefaultTextInterpreter', 'latex');
 % firing rate~0.2   (~1Hz firing rate)
 % balanced network (no Dale's law yet)
 
-observations_ratios= [1,0.5,0.2,0.1,0.05,0.02];
-% observations_ratios= [1,0.5,0.1,0.05,0.01];
+% observations_ratios= [1,0.5,0.2,0.1,0.05,0.02];
+observations_ratios= [1,0.2,0.1,0.05];
 L=length(observations_ratios);
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};
@@ -29,11 +29,12 @@ fontsize2=1.5*fontsize;
 
 figure
 for ii=1:L
-    load(['Run_N=50_obs=' num2str(observations_ratios(ii)) '_T=200000.mat']);
+    load(['Run_N=50_obs=' num2str(observations_ratios(ii)) '_T=500000.mat']);
     
     mi=min(W(:));ma=max(W(:));
     subplot(L+1,K,[1 2 3])
     imagesc(W,[mi ma]); h=colorbar;
+%     colormap('gray')
     ylabel('True W','fontsize',fontsize2)
     set(h, 'ylim', [mi ma])
     subplot(L+1,K,4)
@@ -78,4 +79,4 @@ for ii=1:L
     
 end
 
-Export2Folder('Fig1_alt.pdf','Figures') 
+Export2Folder('Fig1.pdf','Figures') 

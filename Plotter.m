@@ -27,8 +27,9 @@ set(h, 'ylim', [mi ma])
 % subplot(2,1,2); imagesc(sign(W)); colorbar;
 
 %%
+figure
+
 A_ind=linspace(mi,ma,100);
-figure(2)
 plot(A_ind,A_ind);
 hold all
 scatter(W(:),EW(:),'.')
@@ -36,7 +37,7 @@ hold all
 scatter(W(:),EW2(:),'.')
 % hold all
 % scatter(W(:),glassoEW(:),'.')
-legend('x=y','EW','EW2','glassoEW')
+legend('x=y','EW','EW2')
 xlabel('True weights')
 ylabel('Estimated weights')
 [R_squared,correlation,SE] = GetWeightsErrors( W,EW );

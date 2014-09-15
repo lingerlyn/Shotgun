@@ -13,10 +13,13 @@ end
 
 switch network_type
     case 'combi'
-        lr_conn = 0.1;
+        lr_conn = 0.2;
         A=construct_weights_combi(N, spar,lr_conn);
+    case 'realistic'
+        lr_conn = 0.2;
+        A=construct_weights_realistic(N, spar,lr_conn);
     case 'balanced'   
-        lr_conn = 0.1;
+        lr_conn = 0.2;
         A = construct_bal_weights(N,spar,lr_conn);
     case 'circular'
         NN_range=5;

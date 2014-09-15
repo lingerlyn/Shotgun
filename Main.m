@@ -11,22 +11,22 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=599; %number of neurons
+N=50; %number of neurons
 N_stim=0; %number of stimulation sources
-spar =0.1; %sparsity level; 
-bias=-1.7*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+spar =0.2; %sparsity level; 
+bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
-weight_scale=1/sqrt(N*spar); % scale of weights =1/sqrt(N*spar)
-conn_type='balanced';
+weight_scale=1/sqrt(2*N*spar); % scale of weights 
+conn_type='realistic';
 connectivity=v2struct(N,spar,bias,seed_weights);
 
 % Spike Generation parameters
-T=1e5; %timesteps
+T=5e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=1; %fraction of observed neurons per time step
+sample_ratio=0.05; %fraction of observed neurons per time step
 neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
-sample_type='spatially_random';
+sample_type='spatially_random';% 'fixed_subset';%;
 stim_type='pulses';
 seed_spikes=1;
 seed_sample=1;
@@ -36,18 +36,18 @@ spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type);
 glasso=0; %use glasso?
 restricted_penalty=0; % use a restricted l1 penality in lasso (only on parts of the inv_COV matrix)?
 pos_def=1; % use positive semidefinite projection?
-est_spar=spar; % estimated sparsity level. If empty, we "cheat". We just use the prior (not it is not accurate in some types of matrices, due to long range connections), and increase it a bit to reduce shrinkage
+est_spar=spar;%spar; % estimated sparsity level. If empty, we "cheat". We just use the prior (not it is not accurate in some types of matrices, due to long range connections), and increase it a bit to reduce shrinkage
 stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 
 % Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
-warm=0; %use warm starts in fista
+warm=1; %use warm starts in fista
 conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
 if strcmp(conn_type,'block')
-    Realistic=0; %Adhere to Dale's law and add a negative diagonal
-    DistDep=0;
+    Realistic=1; %Adhere to Dale's law and add a negative diagonal
+    DistDlep=1;
     blockFracs=[1/3;1/3;1/3];
     nblocks=length(blockFracs);
     abs_mean=10^(-0.31);
@@ -121,12 +121,13 @@ addpath('EstimateStatistics')
 addpath('EstimateConnectivity');
 % [EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,obs_count,est_priors);
 % EW2=Cxy'/Cxx;
-% EW2=EstimateA_L1(Cxx,Cxy,est_spar);
+% EW=EstimateA_L1(Cxx,Cxy,est_spar);
 EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
 [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
 EW2=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
+% EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %% Remove stimulus parts
 W=W(1:N,1:N);
