@@ -154,6 +154,11 @@ EW2=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
+%OMP
+omp_lambda=0;
+tol=0.01;
+EW_omp=EstimateA_OMP(diag(rates)*Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix);
+
 %% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
