@@ -9,7 +9,7 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
+N=51; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
@@ -20,7 +20,7 @@ conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=1e6; %timesteps
+T=1e5; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
@@ -70,6 +70,7 @@ if strcmp(conn_type,'block')
     
 else
     sbm=[];
+    MeanMatrix=eye(N);
 end
 
 % Combine all parameters 
@@ -139,8 +140,8 @@ else
 end
    
 EW3=Cxy'/(V*Cxx);
-EW=EstimateA_L1(Cxx,Cxy,est_spar);
-% EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+% EW=EstimateA_L1(Cxx,Cxy,est_spar);
+EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
 
 if strcmp(neuron_type,'logistic')
@@ -157,7 +158,7 @@ EW2=diag(amp)*EW;
 %OMP
 omp_lambda=0;
 tol=0.01;
-EW_omp=EstimateA_OMP(diag(rates)*Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix);
+EW=EstimateA_OMP(V*Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix);
 
 %% Remove stimulus parts
 if N_stim>0
