@@ -19,7 +19,7 @@ Tol=1e-6; %numerical tolerance for glasso
 msg=1; %verbosity of glasso algorithm
 maxIter=100;  %glasso max iterations
 Tol_sparse=1e-2; % tolerance for sparsity of W
-thresh=5e6; %max size of spikes array for which we use effiecient computation of sufficient statistics
+thresh=1e8; %max size of spikes array for which we use effiecient computation of sufficient statistics
 
 [N, T] = size(sampled_spikes);
 
@@ -83,10 +83,7 @@ inv_COV=COV\eye(2*N);
 %% Use glasso to sparsify stats
 if glasso==1    
     disp('starting glasso...')
-
-
-
-    
+   
     addpath(fullfile('EstimateStatistics','QUIC')) %mex files for QUIC glasso implementation
     
     lambda_high=1; %maximum bound for lambda

@@ -40,3 +40,36 @@ for ii = 1:N
     W(ii,:) = W(ii,:)/std(W(ii,~~(W(ii,:))));
 end
 
+%% Add "common hidden connections"
+N_subset=0;
+shift=N_subset/2;
+subset=1:N_subset;
+amp=10;
+num=10;
+for ii = subset 
+    temp=(N_subset+1):N;    
+    sgn = amp*(2*(rand<0.5)-1);
+    for jj=1:num
+        conn_unobs_neu = randsample(temp,2);        
+        W(ii,conn_unobs_neu(1)) = normrnd(sgn,0.1);
+        W(conn_unobs_neu(2),conn_unobs_neu(1)) = normrnd(sgn,0.1);
+        W(mod(ii+shift,N_subset)+1,conn_unobs_neu(2)) = normrnd(sgn,0.1);
+    end
+end
+
+%% Add "common input"
+N_subset=0;
+shift=N_subset/2;
+subset=1:N_subset;
+amp=1;
+num=1;
+for ii = subset 
+    temp=(N_subset+1):N;    
+    sgn = amp;%*(2*(rand<0.5)-1);
+    for jj=1:num
+        conn_unobs_neu = randsample(temp,1);        
+        W(ii,conn_unobs_neu) = normrnd(sgn,0.1);
+        W(mod(ii+shift,N_subset)+1,conn_unobs_neu) = normrnd(sgn,0.1);
+    end
+end
+

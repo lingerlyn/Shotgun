@@ -2,8 +2,6 @@ clear all
 close all
 clc
 tic
-% T_array=1e4*(1:100);
-
 
 %% Set params - later write a function for several default values
 addpath('Misc')
@@ -14,20 +12,21 @@ addpath('GenerateConnectivity')
 N=50; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-0.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
-weight_scale=1/sqrt(2*N*spar); % scale of weights 
-conn_type='realistic';
+weight_scale=1; % scale of weights  1/sqrt(N*spar*2)
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=5e5; %timesteps
+T=2e6; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.04; %fraction of observed neurons per time step
-neuron_type='logistic'  ; %'logistic'or 'linear' or 'sign' or 'linear_reg'
-sample_type='spatially_random';%; %'random_fixed_subset'
-stim_type='pulses';
+sample_ratio=0.3; %fraction of observed neurons per time step
+neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
+sample_type_set={'continuous','fixed_subset','spatially_random'};
+sample_type=sample_type_set{3};
+stim_type='sine';
 seed_spikes=1;
 seed_sample=1;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, neuron_type);
@@ -41,23 +40,23 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 
 % Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
-warm=1; %use warm starts in fista
+warm=0; %use warm starts in fista
 conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
 if strcmp(conn_type,'block')
     Realistic=1; %Adhere to Dale's law and add a negative diagonal
-    DistDlep=1;
+    DistDep=1;
     blockFracs=[1/3;1/3;1/3];
     nblocks=length(blockFracs);
     abs_mean=10^(-0.31);
-    str_var=10^(-0.6);
-    noise_var=1;
+    str_var=0.1;%10^(-0.6);
+    noise_var=0.1;
     pconn=spar*ones(nblocks);
     
     %Dale's law
     if Realistic
-        block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -2*ones(nblocks,1) ones(nblocks,1)];
+        block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -1*ones(nblocks,1) ones(nblocks,1)];
 %         c=-2*abs_mean*weight_scale; %self-inhibition.
         c=-1*weight_scale;%self-inhibition.
         MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
@@ -115,33 +114,48 @@ sampled_spikes=observations.*spikes;
 % sampled_spikes=sparse(observations.*spikes);
 %% Handle case of fix obsereved subset
 if strcmp(sample_type,'fixed_subset')||strcmp(sample_type,'random_fixed_subset')
-    ind=any(observations,2);    
-    W=W(ind,ind);
-    bias=bias(ind);
+    ind=any(observations,2);        
+    W=W(ind,ind);    
     spikes=spikes(ind,1:end);
     sampled_spikes=sampled_spikes(ind,1:end);
     observations=observations(ind,1:end);
-    est_spar=nnz(W)/sum(ind)^2; %correct sparsity estimation. Cheating????
+    ind(end+1-N_stim:end)=[];
+    N=sum(ind);% note change in N!!!
+    bias=bias(ind);
+    est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
 end
 
 %% Estimate sufficeint statistics
 addpath('EstimateStatistics')
-[Cxx, Cxy,glassoEW,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
+[Cxx, Cxy,EW3,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
 % Ebias=GetBias( EW,Cxx,rates);
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
 % [EW2,alpha, rates_A, s_sq]=EstimateA(Cxx,Cxy,rates,obs_count,est_priors);
-% EW2=Cxy'/Cxx;
-% EW=EstimateA_L1(Cxx,Cxy,est_spar);
-EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+if strcmp(neuron_type,'logistic')
+    V=diag(rates);
+else
+    V=eye(N);
+end
+   
+EW3=Cxy'/(V*Cxx);
+EW=EstimateA_L1(Cxx,Cxy,est_spar);
+% EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
-[amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
+
+if strcmp(neuron_type,'logistic')
+    [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
+else
+    amp=1;
+    Ebias2=Ebias;
+end
+
 EW2=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %% Remove stimulus parts
-if (N_stim>0)&&(~strcmp(sample_type,'fixed_subset'))&&(~strcmp(sample_type,'random_fixed_subset'))
+if N_stim>0
     W=W(1:N,1:N);
     EW=EW(1:N,1:N);
     EW2=EW2(1:N,1:N);
@@ -157,3 +171,4 @@ save(file_name,'W','bias','EW','EW2','Cxx','Cxy','Ebias','Ebias2','params');
 
 %% Plot
 Plotter
+

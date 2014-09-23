@@ -16,11 +16,12 @@ switch network_type
         lr_conn = 0.2;
         A=construct_weights_combi(N, spar,lr_conn);
     case 'realistic'
-        lr_conn = 0.2;
-        A=construct_weights_realistic(N, spar,lr_conn);
+        inhib_frac = 0.5;
+        A=construct_weights_realistic(N, spar,inhib_frac);
     case 'balanced'   
-        lr_conn = 0.2;
-        A = construct_bal_weights(N,spar,lr_conn);
+        lr_conn = 0.01;
+%         A = construct_bal_weights(N,spar,lr_conn);
+        A = construct_bal_weights_old(N,spar,lr_conn);
     case 'circular'
         NN_range=5;
         A = construct_weights_circ_NN(N,NN_range);
@@ -39,8 +40,8 @@ switch network_type
         error('unknown connectivity type!')
 end
 
-    A=A*scale;
-    G=rand(N,N_stim);
+    A=A*scale; 
+    G=(rand(N,N_stim)<spar)*scale;
     W=[A, G; zeros(N_stim,N_stim+N)]; 
 
 end
