@@ -19,11 +19,18 @@ RandStream.setGlobalStream(stream);
             for tt=1:T
                 temp=randperm(N);
                 ind(temp(1:round(N*unsampled_ratio)),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
-            end            
+            end 
+        case 'continuous'
+            for tt=1:T                
+                ind(1+mod(tt+(1:round(N*unsampled_ratio)),N),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
+            end      
         case 'fully_random'
             ind=rand(N,T)<unsampled_ratio;
         case 'fixed_subset'
-            ind(1:N*unsampled_ratio,:)=1;
+            ind((ceil(N*sampled_ratio)+1):end,:)=1;
+        case 'random_fixed_subset'
+            temp=randperm(N);
+            ind(temp(ceil(N*sampled_ratio):end),:)=1;
         case 'random_NN_blocks'
             K=floor(unsampled_ratio*N/2);
             for tt=1:T                

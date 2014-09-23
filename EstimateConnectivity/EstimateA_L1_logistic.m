@@ -55,7 +55,7 @@ for kk=1:iterations
     x=ThresholdOperator(u,mask.*lambda/L);
     if any(~isfinite(u(:)))
         error('non finite x!')
-    end 
+    end
     t_next=(1+sqrt(1+4*t^2))/2;
     y=x+((t-1)/t_next)*(x-x_prev);    
 end

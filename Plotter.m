@@ -2,15 +2,19 @@ mi=min(W(:));ma=max(W(:));
 
 %% Plot
 figure(1)
-subplot(3,1,1); imagesc(W,[mi ma]); h=colorbar;
+subplot(2,2,1); imagesc(W,[mi ma]); h=colorbar;
 title('True W')
 set(h, 'ylim', [mi ma])
-subplot(3,1,2); imagesc(EW,[mi ma]); h=colorbar;
+subplot(2,2,2); imagesc(EW,[mi ma]); h=colorbar;
 title('EW1')
 set(h, 'ylim', [mi ma])
-subplot(3,1,3); imagesc(EW2,[mi ma]); h=colorbar;
+subplot(2,2,3); imagesc(EW2,[mi ma]); h=colorbar;
 title('EW2')
 set(h, 'ylim', [mi ma])
+subplot(2,2,4); imagesc(EW3,[mi ma]); h=colorbar;
+title('EW3')
+set(h, 'ylim', [mi ma])
+
 
 
 % figure
@@ -23,25 +27,31 @@ set(h, 'ylim', [mi ma])
 % subplot(2,1,2); imagesc(sign(W)); colorbar;
 
 %%
+figure
+
 A_ind=linspace(mi,ma,100);
-figure(2)
 plot(A_ind,A_ind);
 hold all
-scatter(W(:),EW(:))
+scatter(W(:),EW(:),'.')
 hold all
-scatter(W(:),EW2(:))
+scatter(W(:),EW2(:),'.')
+% hold all
+% scatter(W(:),glassoEW(:),'.')
 legend('x=y','EW','EW2')
 xlabel('True weights')
 ylabel('Estimated weights')
-[MSE,correlation,SE] = GetWeightsErrors( W,EW );
-[MSE2,correlation2,SE2] = GetWeightsErrors( W,EW2 );
+[R,C,Z,S] = GetWeightsErrors( W,EW );
+[R2,C2,Z2,S2] = GetWeightsErrors( W,EW2 );
 
-title({[' EW corr =' num2str(correlation) ', EW2 corr =' num2str(correlation2)]; ...
-     [' EW MSE =' num2str(MSE) ', EW2 MSE =' num2str(MSE2)]; ...
-     [' EW SE =' num2str(SE) ', EW2 SE =' num2str(SE2) ]});
+title({[' EW R =' num2str(R) ', EW2 R =' num2str(R2)]; ...
+     [' EW C =' num2str(C) ', EW2 C =' num2str(C2)]; ...
+     [' EW Z =' num2str(Z) ', EW2 Z =' num2str(Z2) ];...
+     [' EW S =' num2str(S) ', EW2 S =' num2str(S2) ]});
 hold off
 
 %%
+plot_bias=0;
+if plot_bias
 mi=min(bias); ma=max(bias);
 b_ind=linspace(mi,ma,100);
 figure(3)
@@ -53,15 +63,18 @@ scatter(bias(:),Ebias2(:))
 legend('x=y','Ebias','Ebias2')
 xlabel('True bias')
 ylabel('Estimated bias')
-[MSE,correlation,SE] = GetWeightsErrors( bias,Ebias );
-[MSE2,correlation2,SE2] = GetWeightsErrors( bias,Ebias2 );
+[R_squared,correlation,SE] = GetWeightsErrors( bias,Ebias );
+[R_squared2,correlation2,SE2] = GetWeightsErrors( bias,Ebias2 );
 
 title({[' Eb corr =' num2str(correlation) ', Eb2 corr =' num2str(correlation2)]; ...
-     [' Eb MSE =' num2str(MSE) ', Eb2 MSE =' num2str(MSE2)]; ...
+     [' Eb MSE =' num2str(R_squared) ', Eb2 MSE =' num2str(R_squared2)]; ...
      [' Eb SE =' num2str(SE) ', Eb2 SE =' num2str(SE2) ]});
 
 hold off
+end
 %% Activity
+plot_activity=1;
+if plot_activity
 figure(4)
 subplot(2,3,[1 2])
 imagesc(spikes);  colorbar
@@ -88,8 +101,9 @@ U_no_bias=W*spikes;
 % if p0>1 
 %     p0=1;
 % end
+mean_U=mean(mean(U_no_bias,2));
 var_U=mean(var(U_no_bias,[],2));
-pred_U_no_bias=exp(-bins.^2/(2*var_U));
+pred_U_no_bias=exp(-(bins-mean_U).^2/(2*var_U));
 pred_U_no_bias=pred_U_no_bias/sum(pred_U_no_bias);
 plot(bins,count/(T*N),bins,pred_U_no_bias); %,bins,p0
 title('U-b count')
@@ -102,6 +116,7 @@ title('Expected loglikelihood Approximation check')
 xlabel('E[exp(U)]')
 ylabel('exp( \mu + 0.5\sigma^2 )')
 hold off
+end
 %% Check Gaussianty
 % figure
 % var_U=var(U_no_bias,[],2);

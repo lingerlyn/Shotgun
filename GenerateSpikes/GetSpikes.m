@@ -24,6 +24,8 @@ switch type
         spikes=network_simulation_Poisson(A,bias,T,T0,seed);
     case 'logistic'
         spikes=network_simulation_logistic(A,bias,T,T0,seed);
+    case 'logistic_with_delays'
+        spikes=network_simulation_logistic_with_delays(A,bias,T,T0,seed);
 end
 
 spikes_out=[spikes; stim];

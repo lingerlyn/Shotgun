@@ -19,15 +19,43 @@ Tol=1e-6; %numerical tolerance for glasso
 msg=1; %verbosity of glasso algorithm
 maxIter=100;  %glasso max iterations
 Tol_sparse=1e-2; % tolerance for sparsity of W
+thresh=1e8; %max size of spikes array for which we use effiecient computation of sufficient statistics
 
 [N, T] = size(sampled_spikes);
 
 %initialize the sufficient statistics arrays
 observations=double(observations);
-XX=sampled_spikes*sampled_spikes';
-XXn=observations*observations';
-XY=sampled_spikes(:,1:(end-1))*(sampled_spikes(:,2:end))';
-XYn=observations(:,1:(end-1))*(observations(:,2:end))';
+if N*T<thresh
+    XX=sampled_spikes*sampled_spikes';
+    XXn=observations*observations';
+    XY=sampled_spikes(:,1:(end-1))*(sampled_spikes(:,2:end))';
+    XYn=observations(:,1:(end-1))*(observations(:,2:end))';
+else
+
+    XX=zeros(N);
+    XXn=zeros(N);
+    XY=zeros(N);
+    XYn=zeros(N);
+    g = find(observations(:,1));
+    sg = double(sampled_spikes(g,1));
+    disp(['Gathering sufficient statistics...'])
+    for tt = 2:T
+        f = g;
+        sf = sg;
+        g = find(observations(:,tt));
+        sg = double(sampled_spikes(g,tt));
+
+        XX(f,f)=XX(f,f)+sf*sf';
+        XXn(f,f)=XXn(f,f)+1;
+
+        XY(f,g)=XY(f,g)+sf*sg';
+        XYn(f,g)=XYn(f,g)+1;
+        if ~mod(tt,T/10)
+            disp([num2str(100*tt/T,2) '%'])
+        end
+    end
+end
+
 mY=sum(sampled_spikes,2);
 mYn=sum(observations,2);
 
@@ -55,10 +83,7 @@ inv_COV=COV\eye(2*N);
 %% Use glasso to sparsify stats
 if glasso==1    
     disp('starting glasso...')
-
-
-
-    
+   
     addpath(fullfile('EstimateStatistics','QUIC')) %mex files for QUIC glasso implementation
     
     lambda_high=1; %maximum bound for lambda
