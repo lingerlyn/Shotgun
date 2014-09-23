@@ -1,24 +1,29 @@
 K=16;
 % U=W*spikes;
-corr(U(1:K,:)',U(1:K,:)')
-corr(spikes(1:K,:)',spikes(1:K,:)')
+corr(U(1:K,:)',U(1:K,:)');
+corr(spikes(1:K,:)',spikes(1:K,:)');
 
-corr(U(1:K,1:end-1)',U(1:K,2:end)')
-corr(spikes(1:K,1:end-1)',spikes(1:K,2:end)')
+corr(U(1:K,1:end-1)',U(1:K,2:end)');
+corr(spikes(1:K,1:end-1)',spikes(1:K,2:end)');
 
 Cxx(1:K,1:K);
 b=(V(1:K,1:K)*Cxx(1:K,1:K))^(-1);
 a=Cxy(1:K,1:K);
 W(1:K,1:K);
 EW3_obs=EW3(1:K,1:K);
-figure(5)
-subplot(2,1,1)
-imagesc(EW3_obs)
+figure
+mi=min(W(:));ma=max(W(:));
+subplot(3,1,1)
+imagesc(W(1:K,1:K),[mi ma])
+colorbar
+title('weight matrix')
+subplot(3,1,2)
+imagesc(EW3_obs,[mi ma])
 title('common input observed')
 colorbar
 EW3_unobs=a'*b;
-subplot(2,1,2)
-imagesc(EW3_unobs)
+subplot(3,1,3)
+imagesc(EW3_unobs,[mi ma])
 title('common input unobserved')
 colorbar
 %%

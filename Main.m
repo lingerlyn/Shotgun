@@ -12,7 +12,7 @@ addpath('GenerateConnectivity')
 N=50; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-0.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1; % scale of weights  1/sqrt(N*spar*2)
@@ -20,9 +20,9 @@ conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=2e6; %timesteps
+T=1e6; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.3; %fraction of observed neurons per time step
+sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
 sample_type_set={'continuous','fixed_subset','spatially_random'};
 sample_type=sample_type_set{3};

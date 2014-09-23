@@ -41,11 +41,11 @@ for ii = 1:N
 end
 
 %% Add "common hidden connections"
-N_subset=0;
-shift=N_subset/2;
+N_subset=ceil(N/3);
+shift=floor(N_subset/2);
 subset=1:N_subset;
-amp=10;
-num=10;
+amp=2;
+num=2;
 for ii = subset 
     temp=(N_subset+1):N;    
     sgn = amp*(2*(rand<0.5)-1);
@@ -61,8 +61,8 @@ end
 N_subset=0;
 shift=N_subset/2;
 subset=1:N_subset;
-amp=1;
-num=1;
+amp=2;
+num=2;
 for ii = subset 
     temp=(N_subset+1):N;    
     sgn = amp;%*(2*(rand<0.5)-1);
