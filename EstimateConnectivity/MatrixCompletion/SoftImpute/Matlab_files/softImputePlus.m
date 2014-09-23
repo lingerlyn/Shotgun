@@ -32,7 +32,7 @@ function [Mfinal,ranks]=softImputePlus(Minit,maxRank,nLambda,lambda)
         [Mat,Glr_mat_u,Glr_mat_d,Glr_mat_v,ranks,lambda,loopFailed]=...
             soft_impute_path_ps(sparse(Minit),lambda,OPTS);
         %soft_impute spits out the first lambda that gives a matrix exceeding maxRank, so just increment that lambda
-        lambda=lambda+.05;   
+        lambda=lambda+.02;   
 
     end
 
