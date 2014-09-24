@@ -20,8 +20,10 @@ switch network_type
         A=construct_weights_realistic(N, spar,inhib_frac);
     case 'balanced'   
         lr_conn = 0.1;
-        A = construct_bal_weights(N,spar,lr_conn);
-%         A = construct_bal_weights_old(N,spar,lr_conn);
+        A = construct_bal_weights(N,spar,lr_conn);      
+    case 'common_input'   
+        lr_conn = 0.1;        
+        A=construct_weights_common_input(N,spar,lr_conn);
     case 'circular'
         NN_range=5;
         A = construct_weights_circ_NN(N,NN_range);
@@ -41,7 +43,10 @@ switch network_type
 end
 
     A=A*scale; 
-    G=(rand(N,N_stim)<spar)*scale;
+    G=scale*(rand(N,N_stim)<spar);
+%     G=zeros(N,N_stim);
+%     G(1,1)=1;
+%     G(2,2)=1;   
     W=[A, G; zeros(N_stim,N_stim+N)]; 
 
 end

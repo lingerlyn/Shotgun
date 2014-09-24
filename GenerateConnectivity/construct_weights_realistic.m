@@ -31,11 +31,11 @@ for ii=1:N
     V=(pi^(D/2))/gamma(1+D/2);
     dist=sqrt(sum((mod(bsxfun(@plus,centers(ii,:),-centers)+0.5,1)-0.5).^2,2))/(spar*V)^(1/D); %distance metric - assumes all neurons are on a 3D box with cyclic boundary conditions
     p=GetProb(dist);
-%     conn=rand(N,1)<p;
-    conn=0.5<p;
-    conn(mod((ii-1):(ii+1)-1,N)+1)=~1; % since we already have the diagonal
-%     conn(i)=~1; % since we already have the diagonal
-    W(conn,ii)=amp*sgn;%*unifrnd(0,1,sum(conn),1);
+    conn=rand(N,1)<p;
+%     conn=0.5<p;
+%     conn(mod((ii-1):(ii+1)-1,N)+1)=~1; % since we already have the diagonal
+    conn(ii)=~1; % since we already have the diagonal
+    W(conn,ii)=amp*sgn*unifrnd(0,1,sum(conn),1);
 end
 
 end

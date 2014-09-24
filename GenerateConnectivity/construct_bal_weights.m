@@ -16,6 +16,7 @@ alpha=0.5; % control decay of NN weights
 
 total_conn = ceil(spar*N);
 W = -1*eye(N);
+% W = diag(unifrnd(-1,0,N,1));
 
 nearby_conn = ceil(total_conn*(1-lr_conn))-1;
 for ii = 1:N
@@ -65,7 +66,7 @@ amp=2;
 num=2;
 for ii = subset 
     temp=(N_subset+1):N;    
-    sgn = amp;%*(2*(rand<0.5)-1);
+    sgn = amp*(2*(rand<0.5)-1);
     for jj=1:num
         conn_unobs_neu = randsample(temp,1);        
         W(ii,conn_unobs_neu) = normrnd(sgn,0.1);
