@@ -1,20 +1,22 @@
-function X=EstimateA_OMP(A,B,spar,tol,lambda,M)
+function X=EstimateA_OMP(A_,B,spar,tol,lambda,M,rates)
 % Does orthogonal matching pursuit until sparsity tolerance is reached
 
     
-    N=size(A,2);
+    N=size(A_,2);
     X=zeros(N);
     
     %loop over each row of W, i.e. x
     
     for i=1:N
+        disp(i)
         x=zeros(N,1);
         S=[];
         Sc=(1:N)';
 
         b=B(:,i);
         r=b; %residuals
-
+        
+        A=A_*rates(i);
         while (mean(~~x)-spar)<tol
 
             AA=A(:,Sc);

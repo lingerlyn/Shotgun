@@ -45,8 +45,8 @@ conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
 if strcmp(conn_type,'block')
-    Realistic=1; %Adhere to Dale's law and add a negative diagonal
-    DistDep=1;
+    Realistic=0; %Adhere to Dale's law and add a negative diagonal
+    DistDep=0;
     blockFracs=[1/3;1/3;1/3];
     nblocks=length(blockFracs);
     abs_mean=10^(-0.31);
@@ -158,7 +158,8 @@ EW2=diag(amp)*EW;
 %OMP
 omp_lambda=0;
 tol=0.01;
-EW=EstimateA_OMP(V*Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix);
+EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+
 
 %% Remove stimulus parts
 if N_stim>0
