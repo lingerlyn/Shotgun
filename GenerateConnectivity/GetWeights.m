@@ -28,7 +28,7 @@ switch network_type
         NN_range=5;
         A = construct_weights_circ_NN(N,NN_range);
     case 'rand'
-        A=randn(N).*(rand(N)<spar)/(sqrt(N*spar));
+        A=randn(N).*(rand(N)<spar);
     case 'block'
         nTypes=length(sbmparams.blockFracs);
         str_var=sbmparams.str_var*ones(nTypes);

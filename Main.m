@@ -9,20 +9,20 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
+N=500; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
-weight_scale=0.1; % scale of weights  1/sqrt(N*spar*2)
-conn_type='balanced'   ;
+weight_scale=1; % scale of weights  1/sqrt(N*spar*2)
+conn_type='realistic';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
 T=1e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=1; %fraction of observed neurons per time step
+sample_ratio=0.2; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
 sample_type_set={'continuous','fixed_subset','spatially_random'};
 sample_type=sample_type_set{3};
@@ -40,7 +40,7 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 
 % Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
-warm=0; %use warm starts in fista
+warm=1; %use warm starts in fista
 conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
@@ -151,16 +151,24 @@ else
     Ebias2=Ebias;
 end
 
-EW2=diag(amp)*EW;
+EW=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %OMP
-omp_lambda=0;
-tol=0.01;
-EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+% omp_lambda=0;
+% tol=0.01;
+% EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
 
+EW2=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+if strcmp(neuron_type,'logistic')
+    [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
+else
+    amp=1;
+    Ebias2=Ebias;
+end
 
+EW2=diag(amp)*EW2;
 %% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
@@ -180,4 +188,4 @@ save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','Ebias','Ebias2','params');
 %% Plot
 Plotter
 
-CommonInputPlot
+% CommonInputPlot
