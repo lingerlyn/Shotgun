@@ -35,7 +35,7 @@ function X=EstimateA_OMP(A_,B,spar,tol,lambda,M,rates)
 
             prods=(AAn'*r).^2; %dot product between cols of AAn and residuals is regular objective
             zs=diag(col_norms.^(-2))*AA'*r; %values of x_i that maximize the above product
-            obj=prods-lambda*(zs-M(Sc)).^2; %penalize optimal values that are farther away from our means
+            obj=prods-lambda*(zs-M(i,Sc)').^2; %penalize optimal values that are farther away from our means
 
             [~,idx]=max(obj);
 
