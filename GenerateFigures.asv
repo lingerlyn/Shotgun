@@ -80,5 +80,4 @@ for ii=1:L
     
 end
 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
 Export2Folder('Fig1.pdf',target_folder) 
