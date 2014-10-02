@@ -9,10 +9,10 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=50; %number of neurons
-N_stim=0; %number of stimulation sources
+N=60; %number of neurons
+N_stim=10; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-1.2*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-3.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
@@ -20,13 +20,14 @@ conn_type='prob';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=5e5; %timesteps
+T=1e4; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.1; %fraction of observed neurons per time step
+sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
 sample_type_set={'continuous','fixed_subset','spatially_random'};
 sample_type=sample_type_set{3};
-stim_type='delayed_pulses';
+stim_type_set={'pulses','delayed_pulses','sine'};
+stim_type=stim_type_set{1};
 seed_spikes=1;
 seed_sample=1;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, neuron_type);
