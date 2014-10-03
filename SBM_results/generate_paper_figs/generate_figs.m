@@ -131,7 +131,7 @@ sbmEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(regEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('Lasso','fontsize',fontsize2)
+    ylabel('OMP','fontsize',fontsize2)
     
     %%% second estimate ii=2
     ii=2;
@@ -157,4 +157,4 @@ sbmEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(sbmEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('Lasso w. dist-dep','fontsize',fontsize2)
+    ylabel('OMP w. dist-dep','fontsize',fontsize2)
