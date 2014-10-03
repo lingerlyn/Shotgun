@@ -22,7 +22,7 @@ RandStream.setGlobalStream(stream);
             end 
         case 'continuous'
             for tt=1:T                
-                ind(1+mod(tt+(1:round(N*unsampled_ratio)),N),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
+                ind(1+mod(tt+(1:round(N*unsampled_ratio)),N),tt)=1>0;
             end      
         case 'fully_random'
             ind=rand(N,T)<unsampled_ratio;

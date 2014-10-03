@@ -8,9 +8,10 @@ addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
 set(0,'DefaultAxesFontSize',12)
-subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.1], [0.05 0.05], [0.1 0.01]);
-T=5e5;
-N=50;
+subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.08], [0.05 0.05], [0.1 0.01]);
+T=1e4;
+N=60;
+p_obs=1;
 %% Figure 1 - Toy model 
 % In this figure:
 % N=50, 
@@ -20,13 +21,13 @@ N=50;
 
 % observations_ratios= [1,0.5,0.2,0.1,0.04,0.02];
 % observations_ratios= [1,0.2,0.1,0.04];
-observations_ratios= [1,0.2,0.1,0.04];
+observations_ratios= p_obs*[1,1];
 L=length(observations_ratios);
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};
 fontsize=12;
 fontsize2=1.3*fontsize; 
-if N==50
+if N<100
     dot_size=100; %for scatter plots
 else
     dot_size=0.01;
@@ -40,7 +41,13 @@ figure(1)
 
 %%
 for ii=1:L
-    load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '.mat'],'W','EW2');
+    
+    if ii==1
+        load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '.mat'],'W','EW2');
+    else
+        load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '_N_stim=10.mat'],'W','EW2');
+    end
+        
     
 %     mi=min([ W(:); EW2(:)] );ma=max([W(:); EW2(:)]);
 %     mi2=min([ EW2(:)] );ma2=max([ EW2(:)]);
@@ -89,9 +96,14 @@ for ii=1:L
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(EW2,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel(['$p_{\mathrm{obs}}=$' num2str(observations_ratios(ii))],'fontsize',fontsize2)
+    if ii==1    
+        ylabel('No stimulus','fontsize',fontsize2);
+    else
+        ylabel('With stimulus','fontsize',fontsize2);
+    end
+
     
 end
 
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
-Export2Folder(['Sparsity_N=' num2str(N) '.png'],target_folder) 
+Export2Folder(['Stim_N=' num2str(N) '.png'],target_folder) 

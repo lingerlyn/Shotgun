@@ -1,32 +1,33 @@
 clear all
 close all
 clc
-tic
 
+% for kk=[1,0.2,0.1,0.04]
 %% Set params - later write a function for several default values
 addpath('Misc')
 addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=500; %number of neurons
-N_stim=0; %number of stimulation sources
+N=60; %number of neurons
+N_stim=10; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-3.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
-weight_scale=1; % scale of weights  1/sqrt(N*spar*2)
-conn_type='realistic';
+weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
+conn_type='prob';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=1e5; %timesteps
+T=1e4; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.2; %fraction of observed neurons per time step
+sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
 sample_type_set={'continuous','fixed_subset','spatially_random'};
 sample_type=sample_type_set{3};
-stim_type='delayed_pulses';
+stim_type_set={'pulses','delayed_pulses','sine'};
+stim_type=stim_type_set{1};
 seed_spikes=1;
 seed_sample=1;
 spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, neuron_type);
@@ -40,7 +41,7 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar); %add more...
 
 % Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
-warm=1; %use warm starts in fista
+warm=0; %use warm starts in fista
 conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
@@ -74,10 +75,13 @@ else
 end
 
 % Combine all parameters 
+
 params=v2struct(connectivity,spike_gen,stat_flags,conn_est_flags,sbm);
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
+tic
 W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,sbm);
+RunningTime.GetWeights=toc;
 
 if ~isempty(sbm) && sbm.Realistic %add self-inhibition diag
     temp=W(1:N,1:N);
@@ -106,9 +110,13 @@ end
 
 %% Generate Spikes
 addpath('GenerateSpikes');
+tic
 spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type,N_stim,stim_type);
+RunningTime.GetSpikes=toc;
+tic
 observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
+RunningTime.SampleSpikes=toc;
 
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
@@ -125,10 +133,12 @@ if strcmp(sample_type,'fixed_subset')||strcmp(sample_type,'random_fixed_subset')
     bias=bias(ind);
     est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
 end
-
+est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
 %% Estimate sufficeint statistics
 addpath('EstimateStatistics')
+tic
 [Cxx, Cxy,EW3,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
+RunningTime.GetStat=toc;
 % Ebias=GetBias( EW,Cxx,rates);
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
@@ -142,15 +152,17 @@ end
 EW3=Cxy'/(V*Cxx);
 % EW=EstimateA_L1(Cxx,Cxy,est_spar);
 EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+% EW=EstimateA_L1_logistic_sampling(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+% EW=EstimateA_L1_logistic_AccurateGrad(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
 
 if strcmp(neuron_type,'logistic')
-    [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
+    [amp, ~]=logistic_ELL(rates,EW,Cxx,Cxy);
 else
     amp=1;
-    Ebias2=Ebias;
+%     Ebias2=Ebias;
 end
-
+% 
 EW=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
@@ -159,7 +171,7 @@ EW=diag(amp)*EW;
 % omp_lambda=0;
 % tol=0.01;
 % EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
-
+tic
 EW2=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 if strcmp(neuron_type,'logistic')
     [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
@@ -169,6 +181,7 @@ else
 end
 
 EW2=diag(amp)*EW2;
+RunningTime.EstimateWeights=toc;
 %% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
@@ -180,11 +193,11 @@ if N_stim>0
     spikes=spikes(1:N,:);
 end
 %% Save Results
-t_elapsed=toc
-params.t_elapsed=t_elapsed;
+
+params.RunningTime=RunningTime;
 file_name=GetName(params);  %need to make this a meaningful name
 save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','Ebias','Ebias2','params');
-
+% end
 %% Plot
 Plotter
 
