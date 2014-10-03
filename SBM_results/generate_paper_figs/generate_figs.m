@@ -9,8 +9,7 @@ fontsize2=1.5*fontsize;
 L=2;
 subplot = @(m,n,p) subtightplot (m, n, p, [0.07 0.03], .05,.04);
 %% DIST DEP
-
-load('regular_sbm_results','allEWs','W');
+load('distdep_results','W','allEWs');
 regEW=allEWs{1};
 ddEW=allEWs{end};
 
@@ -85,6 +84,8 @@ ddEW=allEWs{end};
     ylabel('Lasso w. dist-dep','fontsize',fontsize2)
     %% REGULAR
     
+    load('regular_sbm_results','allEWs','W');
+
 load('regular_sbm_results','allEWs','W');
 regEW=allEWs{1};
 sbmEW=allEWs{end};
@@ -157,4 +158,4 @@ sbmEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(sbmEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('OMP w. dist-dep','fontsize',fontsize2)
+    ylabel('OMP w. inferred means','fontsize',fontsize2)
