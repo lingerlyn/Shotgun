@@ -9,18 +9,19 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=60; %number of neurons
-N_stim=10; %number of stimulation sources
+N=40; %number of neurons
+N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-3.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-2*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+% bias=-1.5*ones(N,1)+0.1*randn(N,1);
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
-conn_type='prob';
+conn_type='balanced';
 connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 
 % Spike Generation parameters
-T=1e4; %timesteps
+T=1e5; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
@@ -48,7 +49,8 @@ conn_est_flags=v2struct(pen_diag,warm);
 if strcmp(conn_type,'block')
     Realistic=0; %Adhere to Dale's law and add a negative diagonal
     DistDep=0;
-    blockFracs=[1/3;1/3;1/3];
+%     blockFracs=[1/3;1/3;1/3];
+    blockFracs=[1/2;1/2];
     nblocks=length(blockFracs);
     abs_mean=10^(-0.31);
     str_var=0.1;%10^(-0.6);
@@ -57,7 +59,15 @@ if strcmp(conn_type,'block')
     
     %Dale's law
     if Realistic
-        block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -1*ones(nblocks,1) ones(nblocks,1)];
+%         block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -1*ones(nblocks,1) ones(nblocks,1)];
+%         block_means(1,1)=block_means(1,1)*1.1;
+%         block_means(3,3)=block_means(3,3)*.9;
+
+        block_means=abs_mean*ones(nblocks).*[ones(nblocks,1) -1*ones(nblocks,1)];
+        block_means(1,1)=block_means(1,1)*1.1;
+        block_means(1,2)=block_means(1,2)*.9;
+
+        
 %         c=-2*abs_mean*weight_scale; %self-inhibition.
         c=-1*weight_scale;%self-inhibition.
         MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
@@ -77,7 +87,7 @@ end
 % Combine all parameters 
 
 params=v2struct(connectivity,spike_gen,stat_flags,conn_est_flags,sbm);
-%% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
+% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
 tic
 W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,sbm);
@@ -93,7 +103,7 @@ if ~isempty(target_rates)
     bias=SetBiases(W,target_rates*ones(N,1));
 end
 
-%% Distance-depdendent Connectivity
+% Distance-depdendent Connectivity
 sigm=@(z) 1./(1+exp(-z));
 distfun=@(a,b,x) sigm(a*x+b);
 
@@ -108,7 +118,7 @@ if ~isempty(sbm) && sbm.DistDep
     
 end
 
-%% Generate Spikes
+%Generate Spikes
 addpath('GenerateSpikes');
 tic
 spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type,N_stim,stim_type);
@@ -117,6 +127,8 @@ tic
 observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
 RunningTime.SampleSpikes=toc;
+
+figure; imagesc(spikes);
 
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
@@ -168,9 +180,13 @@ EW=diag(amp)*EW;
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %OMP
-% omp_lambda=0;
-% tol=0.01;
-% EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+omp_lambda=0;
+tol=0.01;
+EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+
+%NON-LINEAR OMP
+EWnl=OMPNL(Cxx,Cxy,spar,rates);
+
 tic
 EW2=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 if strcmp(neuron_type,'logistic')
@@ -181,6 +197,7 @@ else
 end
 
 EW2=diag(amp)*EW2;
+
 RunningTime.EstimateWeights=toc;
 %% Remove stimulus parts
 if N_stim>0
