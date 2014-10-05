@@ -9,10 +9,10 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=60; %number of neurons
-N_stim=10; %number of stimulation sources
+N=50; %number of neurons
+N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-3.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-1.5*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
@@ -151,19 +151,19 @@ end
    
 EW3=Cxy'/(V*Cxx);
 % EW=EstimateA_L1(Cxx,Cxy,est_spar);
-EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+% EW=EstimateA_L1_logistic(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 % EW=EstimateA_L1_logistic_sampling(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 % EW=EstimateA_L1_logistic_AccurateGrad(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
-Ebias=GetBias( EW,Cxx,rates);
-
-if strcmp(neuron_type,'logistic')
-    [amp, ~]=logistic_ELL(rates,EW,Cxx,Cxy);
-else
-    amp=1;
-%     Ebias2=Ebias;
-end
+% Ebias=GetBias( EW,Cxx,rates);
 % 
-EW=diag(amp)*EW;
+% if strcmp(neuron_type,'logistic')
+%     [amp, ~]=logistic_ELL(rates,EW,Cxx,Cxy);
+% else
+%     amp=1;
+% %     Ebias2=Ebias;
+% end
+% % 
+% EW=diag(amp)*EW;
 % EW2=median(amp)*EW;  %somtimes this works better...
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
@@ -172,15 +172,16 @@ EW=diag(amp)*EW;
 % tol=0.01;
 % EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
 tic
-EW2=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+Ebias=GetBias( EW,Cxx,rates);
 if strcmp(neuron_type,'logistic')
-    [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
+    [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
 else
     amp=1;
     Ebias2=Ebias;
 end
 
-EW2=diag(amp)*EW2;
+EW2=diag(amp)*EW;
 RunningTime.EstimateWeights=toc;
 %% Remove stimulus parts
 if N_stim>0
@@ -196,7 +197,7 @@ end
 
 params.RunningTime=RunningTime;
 file_name=GetName(params);  %need to make this a meaningful name
-save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','Ebias','Ebias2','params');
+save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','rates','Ebias','Ebias2','params');
 % end
 %% Plot
 Plotter

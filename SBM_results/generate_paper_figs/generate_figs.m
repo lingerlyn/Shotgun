@@ -1,4 +1,7 @@
     
+
+addpath('../../Misc')
+
 set(0,'DefaultTextInterpreter', 'latex');
     
 K=5; %width of subplots
@@ -7,14 +10,15 @@ fontsize=12;
 fontsize2=1.5*fontsize;
 
 L=2;
-subplot = @(m,n,p) subtightplot (m, n, p, [0.07 0.03], .05,.04);
+subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.1], [0.05 0.05], [0.1 0.01]);
 %% DIST DEP
 load('distdep_results','W','allEWs');
 regEW=allEWs{1};
 ddEW=allEWs{end};
 
-   figure;
+   figure(1);
     ii=1;
+    N=150;
 
     mi=min(W(:));ma=max(W(:));
     subplot(L+1,K,[1 2])
@@ -55,7 +59,7 @@ ddEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(regEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('Lasso','fontsize',fontsize2)
+    ylabel('No dist-dep','fontsize',fontsize2)
     
     %%% second estimate ii=2
     ii=2;
@@ -81,16 +85,18 @@ ddEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(ddEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('Lasso w. dist-dep','fontsize',fontsize2)
+    ylabel('With dist-dep','fontsize',fontsize2)
+    
+    target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
+    Export2Folder(['Dist_N=' num2str(N) '.png'],target_folder) 
     %% REGULAR
     
-    load('regular_sbm_results','allEWs','W');
-
 load('regular_sbm_results','allEWs','W');
+N=300;
 regEW=allEWs{1};
 sbmEW=allEWs{end};
 
-   figure;
+   figure(2);
     ii=1;
 
     mi=min(W(:));ma=max(W(:));
@@ -132,7 +138,7 @@ sbmEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(regEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('OMP','fontsize',fontsize2)
+    ylabel('No types','fontsize',fontsize2)
     
     %%% second estimate ii=2
     ii=2;
@@ -158,4 +164,8 @@ sbmEW=allEWs{end};
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(sbmEW,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
-    ylabel('OMP w. inferred means','fontsize',fontsize2)
+    ylabel('With types','fontsize',fontsize2)
+    
+    
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
+Export2Folder(['SBM_N=' num2str(N) '.png'],target_folder) 

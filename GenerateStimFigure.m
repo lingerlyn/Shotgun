@@ -12,6 +12,7 @@ subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.08], [0.05 0.05], [0.1 0.01]);
 T=1e4;
 N=60;
 p_obs=1;
+
 %% Figure 1 - Toy model 
 % In this figure:
 % N=50, 
