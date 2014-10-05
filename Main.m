@@ -179,12 +179,12 @@ EW3=Cxy'/(V*Cxx);
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %OMP
-omp_lambda=0;
-tol=0.01;
-EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+% omp_lambda=0;
+% tol=0.01;
+% EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
 
 %NON-LINEAR OMP
-EWnl=OMPNL(Cxx,Cxy,spar,rates);
+% EWnl=OMPNL(Cxx,Cxy,spar,rates);
 
 tic
 EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
