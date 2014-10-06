@@ -9,7 +9,7 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=1000; %number of neurons
+N=100; %number of neurons
 N_stim=0; %number of stimulation sources
 spar =0.2; %sparsity level; 
 bias=-1.2*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
