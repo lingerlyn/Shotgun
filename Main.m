@@ -45,8 +45,9 @@ warm=0; %use warm starts in fista
 conn_est_flags=v2struct(pen_diag,warm);
 
 % SBM parameters
+Realistic=1; %Adhere to Dale's law and add a negative diagonal
+idenTol=.1; %Tolerance for classifying neurons as exc or inh
 if strcmp(conn_type,'block')
-    Realistic=0; %Adhere to Dale's law and add a negative diagonal
     DistDep=0;
 %     blockFracs=[1/3;1/3;1/3];
     blockFracs=[1/2;1/2];
@@ -70,9 +71,8 @@ if strcmp(conn_type,'block')
 %         c=-2*abs_mean*weight_scale; %self-inhibition.
         c=-1*weight_scale;%self-inhibition.
         MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
-        MeanMatrix(~~eye(N))=c;
-        
-        idenTol=.1; %Tolerance for classifying neurons as exc or inh
+        MeanMatrix(~~eye(N))=c;      
+
         
         sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,MeanMatrix,c);
     else
@@ -204,10 +204,10 @@ RunningTime.EstimateWeights=toc;
 if Realistic
     
     %Dale's Law L1
-    [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,spar,N_stim,pen_diag,warm,idenTol);
+    [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,idenTol);
     
     lambda=0; %Not using information from Mean Matrix
-    [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,spar,lambda,MeanMatrix,idenTol);
+    [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
     
 end
 
