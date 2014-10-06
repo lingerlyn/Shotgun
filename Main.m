@@ -71,6 +71,9 @@ if strcmp(conn_type,'block')
         c=-1*weight_scale;%self-inhibition.
         MeanMatrix=GetBlockMeans(N,blockFracs,block_means)*weight_scale;
         MeanMatrix(~~eye(N))=c;
+        
+        idenTol=.1; %Tolerance for classifying neurons as exc or inh
+        
         sbm=v2struct(Realistic,DistDep,blockFracs,nblocks,abs_mean,str_var,noise_var,pconn,block_means,MeanMatrix,c);
     else
         block_means=abs_mean*(ones(nblocks)-2*eye(nblocks)); %default blockmodel
@@ -127,7 +130,6 @@ observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
 RunningTime.SampleSpikes=toc;
 
-figure; imagesc(spikes);
 
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
@@ -180,8 +182,7 @@ EW3=Cxy'/(V*Cxx);
 
 %OMP
 % omp_lambda=0;
-% tol=0.01;
-% EW=EstimateA_OMP(Cxx,Cxy,spar,tol,omp_lambda,MeanMatrix,rates);
+% EW=EstimateA_OMP(Cxx,Cxy,spar,omp_lambda,MeanMatrix,rates);
 
 %NON-LINEAR OMP
 % EWnl=OMPNL(Cxx,Cxy,spar,rates);
@@ -199,6 +200,18 @@ end
 EW2=diag(amp)*EW;
 
 RunningTime.EstimateWeights=toc;
+
+if Realistic
+    
+    %Dale's Law L1
+    [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,spar,N_stim,pen_diag,warm,idenTol);
+    
+    lambda=0; %Not using information from Mean Matrix
+    [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,spar,lambda,MeanMatrix,idenTol);
+    
+end
+
+
 %% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
