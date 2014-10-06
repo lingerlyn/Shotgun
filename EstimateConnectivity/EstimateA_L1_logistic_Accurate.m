@@ -14,6 +14,7 @@ function EW=EstimateA_L1_logistic_Accurate(CXX,CXY,rates,sparsity,N_stim,pen_dia
 
 %params
 % iterations=300;
+% tic
 
 N=length(rates);
 Tol_sparse=0.01; %tolerance for sparsity level
@@ -98,6 +99,7 @@ end
     else
         lambda_low=lambda
     end
+%     toc
 end
         
 EW=x;
