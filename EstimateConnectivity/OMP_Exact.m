@@ -62,7 +62,6 @@ for a=1:N
     %update support
     S=sort([S;Sc(idx)]);
     Sc(idx)=[];
-    params.supp=S;
         
     A=sqrt( (pi/8*h(a))^2 - (Cxy(S,a)'*(Cxx(S,S)\Cxy(S,a)))*pi/8);
     
