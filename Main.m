@@ -184,9 +184,6 @@ EW3=Cxy'/(V*Cxx);
 % omp_lambda=0;
 % EW=EstimateA_OMP(Cxx,Cxy,spar,omp_lambda,MeanMatrix,rates);
 
-%NON-LINEAR OMP
-% EWnl=OMPNL(Cxx,Cxy,spar,rates);
-
 tic
 EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 Ebias=GetBias( EW,Cxx,rates);
@@ -206,10 +203,33 @@ if Realistic
     %Dale's Law L1
     [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,idenTol);
     
-    lambda=0; %Not using information from Mean Matrix
+    lambda=0; %Dale's law OMP (linear)
     [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
     
+    %Dale's law OMP Exact
+    lambda=0;
+    [EW_DOMP_Exact,identsDOMP_Exact]=EstimateA_OMP_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
+    if strcmp(neuron_type,'logistic')
+        [amp, Ebias2]=logistic_ELL(rates,EW_DOMP_Exact,Cxx,Cxy);
+    else
+        amp=1;
+        Ebias2=Ebias;
+    end
+    EW_DOMP_Exact_ELL=diag(amp)*EW_DOMP_Exact;
+    
 end
+
+%Exact OMP
+lambda=0;
+EW_OMP_Exact=EstimateA_OMP_Exact(Cxx,Cxy,rates,est_spar,lambda,M);
+if strcmp(neuron_type,'logistic')
+    [amp, Ebias2]=logistic_ELL(rates,EW_OMP_Exact,Cxx,Cxy);
+else
+    amp=1;
+    Ebias2=Ebias;
+end
+EW_OMP_Exact_ELL=diag(amp)*EW_OMP_Exact;
+
 
 
 %% Remove stimulus parts
