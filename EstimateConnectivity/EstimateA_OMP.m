@@ -1,4 +1,4 @@
-function X=EstimateA_OMP(A_,B,spar,tol,lambda,M,rates)
+function X=EstimateA_OMP(A_,B,sparlambda,M,rates)
 % Does (penalized) orthogonal matching pursuit until sparsity tolerance is reached
 % Inputs:
 % A_ - Cxx
@@ -27,7 +27,7 @@ function X=EstimateA_OMP(A_,B,spar,tol,lambda,M,rates)
         r=b; %residuals
         
         A=A_*rates(i); %apply spiking rate scaling for logistic
-        while (mean(~~x)-spar)<tol
+        while (mean(~~x)<spar)
 
             AA=A(:,Sc); %A with cols we haven't selected yet
             col_norms=sqrt(d(Sc))*rates(i); %norm of each column
