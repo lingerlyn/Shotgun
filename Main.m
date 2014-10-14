@@ -22,7 +22,7 @@ connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
 % Spike Generation parameters
 T=1e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=1; %fraction of observed neurons per time step
+sample_ratio=0.1; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
 sample_type_set={'continuous','fixed_subset','spatially_random'};
 sample_type=sample_type_set{3};
