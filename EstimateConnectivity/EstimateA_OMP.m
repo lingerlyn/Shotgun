@@ -1,4 +1,4 @@
-function X=EstimateA_OMP(A_,B,sparlambda,M,rates)
+function X=EstimateA_OMP(A_,B,spar,lambda,M,rates)
 % Does (penalized) orthogonal matching pursuit until sparsity tolerance is reached
 % Inputs:
 % A_ - Cxx
