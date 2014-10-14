@@ -65,6 +65,11 @@ for a=1:N
         idx=idx-size(obj,1);
     end
     
+    if ismember(a,Sc) %if a diagonal weight remains, pick it instead
+        idx=find(a==Sc); %since we know it's negative (and on).
+    end
+    
+    
 
     %update support
     S=sort([S;Sc(idx)]);

@@ -181,8 +181,15 @@ EW3=Cxy'/(V*Cxx);
 % EW=EstimateA_L1_logistic_known_b(Cxx,Cxy,bias,est_spar);
 
 %OMP
-% omp_lambda=0;
-% EW=EstimateA_OMP(Cxx,Cxy,spar,omp_lambda,MeanMatrix,rates);
+omp_lambda=0;
+EW_OMP=EstimateA_OMP(Cxx,Cxy,spar,omp_lambda,MeanMatrix,rates);
+if strcmp(neuron_type,'logistic')
+    [amp, ~]=logistic_ELL(rates,EW_OMP,Cxx,Cxy);
+else
+    amp=1;
+end
+EW_OMP_ELL=diag(amp)*EW_OMP;
+
 
 tic
 EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
@@ -202,9 +209,23 @@ if Realistic
     
     %Dale's Law L1
     [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,idenTol);
+    if strcmp(neuron_type,'logistic')
+        [amp, Ebias2]=logistic_ELL(rates,EW_DL1,Cxx,Cxy);
+    else
+        amp=1;
+        Ebias2=Ebias;
+    end
+    EW_DL1_ELL=diag(amp)*EW_DL1;
     
     lambda=0; %Dale's law OMP (linear)
     [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
+    if strcmp(neuron_type,'logistic')
+        [amp, Ebias2]=logistic_ELL(rates,EW_DOMP,Cxx,Cxy);
+    else
+        amp=1;
+        Ebias2=Ebias;
+    end
+    EW_DOMP_ELL=diag(amp)*EW_DOMP;
     
     %Dale's law OMP Exact
     lambda=0;
@@ -221,7 +242,7 @@ end
 
 %Exact OMP
 lambda=0;
-EW_OMP_Exact=EstimateA_OMP_Exact(Cxx,Cxy,rates,est_spar,lambda,M);
+EW_OMP_Exact=EstimateA_OMP_Exact(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix);
 if strcmp(neuron_type,'logistic')
     [amp, Ebias2]=logistic_ELL(rates,EW_OMP_Exact,Cxx,Cxy);
 else
@@ -229,6 +250,22 @@ else
     Ebias2=Ebias;
 end
 EW_OMP_Exact_ELL=diag(amp)*EW_OMP_Exact;
+
+disp(['L1: ' num2str(corr(EW(:),W(:)))]);
+disp(['L1+ELL: ' num2str(corr(EW2(:),W(:)))]);
+disp(['OMP: ' num2str(corr(EW_OMP(:),W(:)))]);
+disp(['OMP+ELL: ' num2str(corr(EW_OMP_ELL(:),W(:)))]);
+disp(['OMP Exact: ' num2str(corr(EW_OMP_Exact(:),W(:)))]);
+disp(['OMP Exact+ELL: ' num2str(corr(EW_OMP_Exact_ELL(:),W(:)))]);
+disp(['Dales Law L1: ' num2str(corr(EW_DL1(:),W(:)))]);
+disp(['Dales Law L1+ELL: ' num2str(corr(EW_DL1_ELL(:),W(:)))]);
+disp(['Dales Law OMP: ' num2str(corr(EW_DOMP(:),W(:)))]);
+disp(['Dales Law OMP+ELL: ' num2str(corr(EW_DOMP_ELL(:),W(:)))]);
+disp(['Dales Law OMP Exact: ' num2str(corr(EW_DOMP_Exact(:),W(:)))]);
+disp(['Dales Law OMP Exact+ELL: ' num2str(corr(EW_DOMP_Exact_ELL(:),W(:)))]);
+
+
+
 
 
 
