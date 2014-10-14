@@ -257,12 +257,14 @@ disp(['OMP: ' num2str(corr(EW_OMP(:),W(:)))]);
 disp(['OMP+ELL: ' num2str(corr(EW_OMP_ELL(:),W(:)))]);
 disp(['OMP Exact: ' num2str(corr(EW_OMP_Exact(:),W(:)))]);
 disp(['OMP Exact+ELL: ' num2str(corr(EW_OMP_Exact_ELL(:),W(:)))]);
-disp(['Dales Law L1: ' num2str(corr(EW_DL1(:),W(:)))]);
-disp(['Dales Law L1+ELL: ' num2str(corr(EW_DL1_ELL(:),W(:)))]);
-disp(['Dales Law OMP: ' num2str(corr(EW_DOMP(:),W(:)))]);
-disp(['Dales Law OMP+ELL: ' num2str(corr(EW_DOMP_ELL(:),W(:)))]);
-disp(['Dales Law OMP Exact: ' num2str(corr(EW_DOMP_Exact(:),W(:)))]);
-disp(['Dales Law OMP Exact+ELL: ' num2str(corr(EW_DOMP_Exact_ELL(:),W(:)))]);
+if Realistic
+    disp(['Dales Law L1: ' num2str(corr(EW_DL1(:),W(:)))]);
+    disp(['Dales Law L1+ELL: ' num2str(corr(EW_DL1_ELL(:),W(:)))]);
+    disp(['Dales Law OMP: ' num2str(corr(EW_DOMP(:),W(:)))]);
+    disp(['Dales Law OMP+ELL: ' num2str(corr(EW_DOMP_ELL(:),W(:)))]);
+    disp(['Dales Law OMP Exact: ' num2str(corr(EW_DOMP_Exact(:),W(:)))]);
+    disp(['Dales Law OMP Exact+ELL: ' num2str(corr(EW_DOMP_Exact_ELL(:),W(:)))]);
+end
 
 
 
