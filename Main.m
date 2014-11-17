@@ -1,5 +1,5 @@
 clear all
-close all
+% close all
 clc
 
 % for kk=[1,0.2,0.1,0.04]
@@ -9,22 +9,22 @@ addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 
 %Network parameters
-N=100; %number of neurons
-N_stim=0; %number of stimulation sources
+N=50; %number of neurons
+N_stim=8; %number of stimulation sources
 spar =0.2; %sparsity level; 
-bias=-1.2*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
+bias=-5.2*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
 target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
 conn_type='prob';
-connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type);
+connectivity=v2struct(N,spar,bias,seed_weights, weight_scale, conn_type,N_stim);
 
 % Spike Generation parameters
 T=1e5; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=0.1; %fraction of observed neurons per time step
+sample_ratio=0.2; %fraction of observed neurons per time step
 neuron_type='logistic'; %'logistic' or 'linear' or 'sign' or 'linear_reg'
-sample_type_set={'continuous','fixed_subset','spatially_random'};
+sample_type_set={'continuous','fixed_subset','spatially_random','prob'};
 sample_type=sample_type_set{3};
 stim_type_set={'pulses','delayed_pulses','sine'};
 stim_type=stim_type_set{1};
@@ -130,7 +130,6 @@ observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
 RunningTime.SampleSpikes=toc;
 
-
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
 % sampled_spikes=sparse(observations.*spikes);
@@ -192,7 +191,9 @@ EW_OMP_ELL=diag(amp)*EW_OMP;
 
 
 tic
+% EW=EstimateA_L1_logistic_Accurate_distdep(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
 EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);
+
 Ebias=GetBias( EW,Cxx,rates);
 if strcmp(neuron_type,'logistic')
     [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
@@ -201,76 +202,74 @@ else
     Ebias2=Ebias;
 end
 
-EW2=diag(amp)*EW;
+EW2=diag(amp)*EW
 
 RunningTime.EstimateWeights=toc;
 
-if Realistic
-    
-    %Dale's Law L1
-    [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,idenTol);
-    if strcmp(neuron_type,'logistic')
-        [amp, Ebias2]=logistic_ELL(rates,EW_DL1,Cxx,Cxy);
-    else
-        amp=1;
-        Ebias2=Ebias;
+CheckMore=0;
+if CheckMore
+    if Realistic
+
+        %Dale's Law L1
+        [EW_DL1,idents]=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,idenTol);
+        if strcmp(neuron_type,'logistic')
+            [amp, Ebias2]=logistic_ELL(rates,EW_DL1,Cxx,Cxy);
+        else
+            amp=1;
+            Ebias2=Ebias;
+        end
+        EW_DL1_ELL=diag(amp)*EW_DL1;
+
+        lambda=0; %Dale's law OMP (linear)
+        [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
+        if strcmp(neuron_type,'logistic')
+            [amp, Ebias2]=logistic_ELL(rates,EW_DOMP,Cxx,Cxy);
+        else
+            amp=1;
+            Ebias2=Ebias;
+        end
+        EW_DOMP_ELL=diag(amp)*EW_DOMP;
+
+        %Dale's law OMP Exact
+        lambda=0;
+        [EW_DOMP_Exact,identsDOMP_Exact]=EstimateA_OMP_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
+        if strcmp(neuron_type,'logistic')
+            [amp, Ebias2]=logistic_ELL(rates,EW_DOMP_Exact,Cxx,Cxy);
+        else
+            amp=1;
+            Ebias2=Ebias;
+        end
+        EW_DOMP_Exact_ELL=diag(amp)*EW_DOMP_Exact;
+
     end
-    EW_DL1_ELL=diag(amp)*EW_DL1;
-    
-    lambda=0; %Dale's law OMP (linear)
-    [EW_DOMP,identsDOMP]=EstimateA_OMP_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
-    if strcmp(neuron_type,'logistic')
-        [amp, Ebias2]=logistic_ELL(rates,EW_DOMP,Cxx,Cxy);
-    else
-        amp=1;
-        Ebias2=Ebias;
-    end
-    EW_DOMP_ELL=diag(amp)*EW_DOMP;
-    
-    %Dale's law OMP Exact
+
+    %Exact OMP
     lambda=0;
-    [EW_DOMP_Exact,identsDOMP_Exact]=EstimateA_OMP_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix,idenTol);
+    EW_OMP_Exact=EstimateA_OMP_Exact(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix);
     if strcmp(neuron_type,'logistic')
-        [amp, Ebias2]=logistic_ELL(rates,EW_DOMP_Exact,Cxx,Cxy);
+        [amp, Ebias2]=logistic_ELL(rates,EW_OMP_Exact,Cxx,Cxy);
     else
         amp=1;
         Ebias2=Ebias;
     end
-    EW_DOMP_Exact_ELL=diag(amp)*EW_DOMP_Exact;
-    
+    EW_OMP_Exact_ELL=diag(amp)*EW_OMP_Exact;
+
+    disp(['L1: ' num2str(corr(EW(:),W(:)))]);
+    disp(['L1+ELL: ' num2str(corr(EW2(:),W(:)))]);
+    disp(['OMP: ' num2str(corr(EW_OMP(:),W(:)))]);
+    disp(['OMP+ELL: ' num2str(corr(EW_OMP_ELL(:),W(:)))]);
+    disp(['OMP Exact: ' num2str(corr(EW_OMP_Exact(:),W(:)))]);
+    disp(['OMP Exact+ELL: ' num2str(corr(EW_OMP_Exact_ELL(:),W(:)))]);
+    if Realistic
+        disp(['Dales Law L1: ' num2str(corr(EW_DL1(:),W(:)))]);
+        disp(['Dales Law L1+ELL: ' num2str(corr(EW_DL1_ELL(:),W(:)))]);
+        disp(['Dales Law OMP: ' num2str(corr(EW_DOMP(:),W(:)))]);
+        disp(['Dales Law OMP+ELL: ' num2str(corr(EW_DOMP_ELL(:),W(:)))]);
+        disp(['Dales Law OMP Exact: ' num2str(corr(EW_DOMP_Exact(:),W(:)))]);
+        disp(['Dales Law OMP Exact+ELL: ' num2str(corr(EW_DOMP_Exact_ELL(:),W(:)))]);
+    end
+
 end
-
-%Exact OMP
-lambda=0;
-EW_OMP_Exact=EstimateA_OMP_Exact(Cxx,Cxy,rates,est_spar,lambda,MeanMatrix);
-if strcmp(neuron_type,'logistic')
-    [amp, Ebias2]=logistic_ELL(rates,EW_OMP_Exact,Cxx,Cxy);
-else
-    amp=1;
-    Ebias2=Ebias;
-end
-EW_OMP_Exact_ELL=diag(amp)*EW_OMP_Exact;
-
-disp(['L1: ' num2str(corr(EW(:),W(:)))]);
-disp(['L1+ELL: ' num2str(corr(EW2(:),W(:)))]);
-disp(['OMP: ' num2str(corr(EW_OMP(:),W(:)))]);
-disp(['OMP+ELL: ' num2str(corr(EW_OMP_ELL(:),W(:)))]);
-disp(['OMP Exact: ' num2str(corr(EW_OMP_Exact(:),W(:)))]);
-disp(['OMP Exact+ELL: ' num2str(corr(EW_OMP_Exact_ELL(:),W(:)))]);
-if Realistic
-    disp(['Dales Law L1: ' num2str(corr(EW_DL1(:),W(:)))]);
-    disp(['Dales Law L1+ELL: ' num2str(corr(EW_DL1_ELL(:),W(:)))]);
-    disp(['Dales Law OMP: ' num2str(corr(EW_DOMP(:),W(:)))]);
-    disp(['Dales Law OMP+ELL: ' num2str(corr(EW_DOMP_ELL(:),W(:)))]);
-    disp(['Dales Law OMP Exact: ' num2str(corr(EW_DOMP_Exact(:),W(:)))]);
-    disp(['Dales Law OMP Exact+ELL: ' num2str(corr(EW_DOMP_Exact_ELL(:),W(:)))]);
-end
-
-
-
-
-
-
 %% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
@@ -290,4 +289,4 @@ save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','rates','Ebias','Ebias2','p
 %% Plot
 Plotter
 
-% CommonInputPlot
+% CommonInputPlotC

@@ -32,6 +32,9 @@ switch network_type
         A = construct_weights_circ_NN(N,NN_range);
     case 'rand'
         A=randn(N).*(rand(N)<spar);
+    case 'cluster'
+        K=10;
+        A=construct_clustered_weights(N,K,spar);
     case 'block'
         nTypes=length(sbmparams.blockFracs);
         str_var=sbmparams.str_var*ones(nTypes);
@@ -46,7 +49,8 @@ switch network_type
 end
 
     A=A*scale; 
-    G=scale*(rand(N,N_stim)<spar);
+%     G=scale*(rand(N,N_stim)<spar);
+    G=ones(N,N_stim);
 %     G=zeros(N,N_stim);
 %     G(1,1)=1;
 %     G(2,2)=1;   
