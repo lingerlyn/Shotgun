@@ -20,6 +20,33 @@ RandStream.setGlobalStream(stream);
                 temp=randperm(N);
                 ind(temp(1:round(N*unsampled_ratio)),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
             end 
+        case 'prob'
+            addpath('Misc') % so we can use the GetProb function            
+            spar=0.2; %for now I hardwire this. later, make this one of the function's inputs
+            temp=randperm(N);
+            ind(temp(1:round(N*sampled_ratio)),1)=1>0; %note we use here sampled_ration and not unsampled_ratio
+            for tt=2:T
+                ind_num=find(ind(:,tt-1));
+                p=GetProb(N,spar,ind_num);
+                p=bsxfun(@times,p,1./sum(p,1));                
+                next_ii=SampleProb(p);
+                % if next indices have duplicates, replace these duplicates with random choces
+                next_ii=sort(next_ii);                
+                duplicates=[diff(next_ii)==0 0]>0.5;     
+                if ~isempty(duplicates)
+                    unique_next_ii=unique(next_ii);
+                    Complmentary_set=1:N;
+                    for jj=1:length(unique_next_ii)
+                        Complmentary_set(Complmentary_set==unique_next_ii(jj))=0;
+                    end
+                    Complmentary_set(Complmentary_set==0)=[];
+                    temp=Complmentary_set(randperm(length(Complmentary_set)));
+                    next_ii(duplicates)=temp(1:sum(duplicates));         
+                end
+                ind(next_ii,tt)=1>0; %this randomization insures a at least sample_ratio observed at each time
+                
+            end 
+            ind=~ind; %we will inverse this back again in the end
         case 'continuous'
             for tt=1:T                
                 ind(1+mod(tt+(1:round(N*unsampled_ratio)),N),tt)=1>0;
@@ -54,4 +81,13 @@ RandStream.setGlobalStream(stream);
     end    
     
     observations=[~ind; ones(N_stim,T)];
+end
+
+function x=SampleProb(p)
+% draw a single sample x from a discrete probability distribution p (column vector)
+% if p is a matrix - do this for each column vector
+
+r = rand(1,size(p,2));
+x=sum(bsxfun(@gt, r,cumsum(p)))+1;
+
 end

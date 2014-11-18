@@ -9,10 +9,11 @@ function [ W ] = construct_weights_probabilistic(N, spar,inhib_frac)
 % OUTPUT
 % N x N weight matrix
 
+addpath('../Misc') % so we can use the GetProb function
+
+
 W = -1*eye(N); % diagonal negative
-D=1; %number of dimentions
-% centers=rand(N,D); %locations of each neuron in a 3D box
-centers=linspace(0,1,N)';
+
 sgn_array=ones(N,1);
 sgn_array(1:(1/inhib_frac):end)=-1;
 
@@ -26,9 +27,7 @@ for ii=1:N
 %         amp=1;
 %     end
     
-    V=(pi^(D/2))/gamma(1+D/2);
-    dist=sqrt(sum((mod(bsxfun(@plus,centers(ii,:),-centers)+0.5,1)-0.5).^2,2))/(spar*V)^(1/D); %distance metric - assumes all neurons are on a 3D box with cyclic boundary conditions
-    p=GetProb(dist);
+     p=GetProb(N,spar,ii);
     conn=rand(N,1)<p;
 %     conn=0.5<p;
 %     conn(mod((ii-1):(ii+1)-1,N)+1)=~1; % since we already have the diagonal
@@ -38,7 +37,5 @@ end
 
 end
 
-function p=GetProb(dist)
-    p=exp(-3*dist);
-end
+
 

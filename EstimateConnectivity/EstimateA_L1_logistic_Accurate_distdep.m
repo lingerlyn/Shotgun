@@ -1,4 +1,4 @@
-function EW=EstimateA_L1_logistic_Accurate(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm)
+function EW=EstimateA_L1_logistic_Accurate_distdep(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm)
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
@@ -29,10 +29,6 @@ max_iterations=100;
 % end
 y=x;
 
-% this effectively removes weights in-going into a stimulus node
-rates(rates<0)=0;
-rates(rates>1)=0;
-%%%
 
 V=-diag(pi*(rates.*log(rates)+(1-rates).*log(1-rates))/8); %for the gradient
 V(isnan(V))=0; %take care of 0*log(0) cases...
@@ -56,10 +52,9 @@ if ~warm
     y=x;
 end
     
-if pen_diag
-    mask=ones(N);
-else  
-    mask=ones(N)-eye(N); % used to remove L1 penalty from diagonal
+mask=-log(GetProb(N,sparsity,1:N));
+if ~pen_diag
+    mask(eye(N)>0.5)=0; % used to remove L1 penalty from diagonal
 end
 t_next=1;
 FISTA_cond=1;

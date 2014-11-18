@@ -2,28 +2,23 @@ clear all
 % close all
 clc
 
-% Generate all figures for the paper
+% Generate stim figure
 addpath('Results')
 addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
-set(0,'DefaultAxesFontSize',12)
+set(0,'DefaultAxesFontSize',14)
+set(0,'defaultlinelinewidth',2.5)
 subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.08], [0.05 0.05], [0.1 0.01]);
-T=1e4;
-N=60;
-p_obs=1;
+
+%%
+T=1e5;
+N=50;
+p_obs=0.2;
 
 %% Figure 1 - Toy model 
-% In this figure:
-% N=50, 
-% T=2e5 (~1 hour experiment, assuming 200ms bins)
-% firing rate~0.2   (~1Hz firing rate)
-% balanced network (no Dale's law yet)
 
-% observations_ratios= [1,0.5,0.2,0.1,0.04,0.02];
-% observations_ratios= [1,0.2,0.1,0.04];
-observations_ratios= p_obs*[1,1];
-L=length(observations_ratios);
+L=9; %number of stimuli + 1
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};
 fontsize=12;
@@ -41,14 +36,17 @@ end
 figure(1)
 
 %%
+corr_array=zeros(L,1);
+mean_rate=zeros(L,1);
+
 for ii=1:L
     
     if ii==1
-        load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '.mat'],'W','EW2');
+        load(['Run_N=' num2str(N) '_obs=' num2str(p_obs) '_T=' num2str(T) '.mat'],'W','EW2','rates','params');
     else
-        load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '_N_stim=10.mat'],'W','EW2');
+        load(['Run_N=' num2str(N) '_obs=' num2str(p_obs) '_T=' num2str(T) '_N_stim=' num2str(ii-1) '.mat'],'W','EW2','rates','params');
     end
-        
+%         Run_N=50_obs=0.2_T=100000_N_stim=1
     
 %     mi=min([ W(:); EW2(:)] );ma=max([W(:); EW2(:)]);
 %     mi2=min([ EW2(:)] );ma2=max([ EW2(:)]);
@@ -83,6 +81,8 @@ for ii=1:L
     
    subplot(L+1,K,K*ii+5)
      [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW2 );
+     corr_array(ii)=correlation; 
+     mean_rates(ii)=mean(rates);      
 %     [MSE2,correlation2,SE2] = GetWeightsErrors( W,EW22 );
 
     bar( [R,correlation, zero_matching,sign_matching] );    
@@ -105,6 +105,15 @@ for ii=1:L
 
     
 end
+%%
+figure(2)
+fontsize=17;
+stim_strength=(1:L)-1;
+[AX,H1,H2] =plotyy(stim_strength,corr_array,stim_strength,mean_rates);
+xlabel('Stimulus amplitude','fontsize',fontsize)
+ set(get(AX(1),'Ylabel'),'String','C (correlation)','fontsize',fontsize) 
+ set(get(AX(2),'Ylabel'),'String','m (mean spike probability)','fontsize',fontsize) 
 
+%%
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
-Export2Folder(['Stim_N=' num2str(N) '.png'],target_folder) 
+Export2Folder(['Stim_N=' num2str(N) '.eps'],target_folder) 
