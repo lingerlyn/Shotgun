@@ -1,3 +1,6 @@
+
+
+
 %% First determine distance-dependent penalty
 
 ts=T; %looping over T optional - not done here.
@@ -29,7 +32,7 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
         for l=1:nsls
             disp(l)
-            EW_d{tt,ool}=EstimateA_OMP2_Exact_DistDep(Cxx,Cxy,rates,est_spar,0,zeros(N),DD,sls(l));
+            EW_d{tt,oo,l}=EstimateA_OMP2_Exact_DistDep(Cxx,Cxy,rates,est_spar,0,zeros(N),DD,sls(l));
             [amp, Ebias2]=logistic_ELL(rates,EW_d{tt,oo,l},Cxx,Cxy);
             EW_d_ell{tt,oo,l}=diag(amp)*EW_d{tt,oo,l};
             EW_d_corr(tt,oo,l)=corr(EW_d{tt,oo,l}(:),W(:));
@@ -40,7 +43,7 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 end
 figure; plot(squeeze(EW_d_ell_corr(1,1,:)),'.')
 
-%% Now find correct mean penalty parameter
+% Now find correct mean penalty parameter
 
 ts=T;
 nts=length(ts);
@@ -60,12 +63,21 @@ omp2_exact_dale_ell_ests=zeros(N,N,nts,nobs,nls);
 omp2_exact_dale_ell_mses=zeros(nts,nobs,nls);
 omp2_exact_dale_ell_corrs=zeros(nts,nobs,nls);
 
+omp3_exact_dale_ests=zeros(N,N,nts,nobs,nls);
+omp3_exact_dale_mses=zeros(nts,nobs,nls);
+omp3_exact_dale_corrs=zeros(nts,nobs,nls);
+
+omp3_exact_dale_ell_ests=zeros(N,N,nts,nobs,nls);
+omp3_exact_dale_ell_mses=zeros(nts,nobs,nls);
+omp3_exact_dale_ell_corrs=zeros(nts,nobs,nls);
+
+
 identsDOMP2=zeros(N,nts,nobs,nls);
 
 sl=7; %parameter picked from dist-dep 'cross-validation'
 
 
-for oo=1
+for oo=1:nobs
 disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
     for tt=1:nts
@@ -97,12 +109,27 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
             omp2_exact_dale_ell_mses(tt,oo,l)=norm(EW_ELL-W,'fro')/norm(W,'fro');
             omp2_exact_dale_ell_corrs(tt,oo,l)=corr(EW_ELL(:),W(:));
 
+            [EW,identsDOMP2(:,tt,oo,l)]=EstimateA_OMP3_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
+
+            omp3_exact_dale_ests(:,:,tt,oo,l)=EW;
+            omp3_exact_dale_mses(tt,oo,l)=norm(EW-W,'fro')/norm(W,'fro');
+            omp3_exact_dale_corrs(tt,oo,l)=corr(EW(:),W(:));
+
+            [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
+            EW_ELL=diag(amp)*EW;
+
+            omp3_exact_dale_ell_ests(:,:,tt,oo,l)=EW_ELL;
+            omp3_exact_dale_ell_mses(tt,oo,l)=norm(EW_ELL-W,'fro')/norm(W,'fro');
+            omp3_exact_dale_ell_corrs(tt,oo,l)=corr(EW_ELL(:),W(:));
+            
             toc
          end
 
     end
 end
-figure; plot(squeeze(omp2_exact_dale_ell_corrs(1,:,:))')
+figure; hold on;
+plot(squeeze(omp2_exact_dale_ell_corrs(1,:,:))','b')
+plot(squeeze(omp3_exact_dale_ell_corrs(1,:,:))','r')
 
 
 
@@ -376,5 +403,5 @@ subplot(4,2,8); plot(W(:),omp2_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$
 
 %% Save estimates
 
-save('results.mat','params','W','MeanMatrix','lassoEW_ell','lasso_dale_ell','omp2_EW_ell','omp2_EW_dale_ell','omp2_infer_m','omp2_infer_d',...
+save('results.mat','params','W','lassoEW_ell','lasso_dale_ell','omp2_EW_ell','omp2_EW_dale_ell','omp2_infer_m','omp2_infer_d',...
     'omp2_infer_both','omp2_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m');

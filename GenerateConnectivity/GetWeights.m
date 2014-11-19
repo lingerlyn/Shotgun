@@ -40,9 +40,16 @@ switch network_type
         str_var=sbmparams.str_var*ones(nTypes);
         seed=randi(1000);
         if sbmparams.DistDep
-            A=construct_block_weights(N,sbmparams.blockFracs,sbmparams.block_means,str_var,ones(sbmparams.nblocks),seed); %delete connections later on
+            A=construct_block_weights(N,sbmparams.blockFracs,sbmparams.block_means,str_var,ones(sbmparams.nblocks),seed);
+            %connectivity
+            A(1:N,1:N)=A(1:N,1:N).*(sbmparams.fd>rand(N) | ~~eye(N)*sbmparams.Realistic );
         else
             A=construct_block_weights(N,sbmparams.blockFracs,sbmparams.block_means,str_var,sbmparams.pconn,seed);
+        end
+        
+        %fix the diagonal
+        if sbmparams.Realistic
+            A(~~eye(N))=scale*sbmparams.self_inhibition;
         end
     otherwise
         error('unknown connectivity type!')
