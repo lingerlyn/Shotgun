@@ -6,7 +6,8 @@
 ts=T; %looping over T optional - not done here.
 obs=[.05;.1;.2;1];
 %dist-dep penalties
-sls=[0;1e-4;2e-4;5e-4;7e-4;1e-3;.005;.01;.05;.1];
+% sls=[0;1e-4;2e-4;5e-4;7e-4;1e-3;.005;.01;.05;.1];
+sls=[0;1e-8;1e-5;1e-4;2e-4;5e-4;7e-4;1e-3;.005;.01;.05;.1];
 
 nts=length(ts);
 nobs=length(obs);
@@ -32,7 +33,7 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
         for l=1:nsls
             disp(l)
-            EW_d{tt,oo,l}=EstimateA_OMP2_Exact_DistDep(Cxx,Cxy,rates,est_spar,0,zeros(N),DD,sls(l));
+            EW_d{tt,oo,l}=EstimateA_OMP4_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),sbm.fd,sls(l),idenTol);
             [amp, Ebias2]=logistic_ELL(rates,EW_d{tt,oo,l},Cxx,Cxy);
             EW_d_ell{tt,oo,l}=diag(amp)*EW_d{tt,oo,l};
             EW_d_corr(tt,oo,l)=corr(EW_d{tt,oo,l}(:),W(:));
@@ -44,39 +45,27 @@ end
 figure; plot(squeeze(EW_d_ell_corr(1,1,:)),'.')
 
 % Now find correct mean penalty parameter
-
+%%
 ts=T;
 nts=length(ts);
 
-ls=[0;.0001;.001;.005;.01;.05;.1];
+% ls=[0;.0001;.001;.005;.01;.05;.1];
+ls=[0;.0001;.001;.005;.01;.05;.1;.15;.2;.25;.3;.5;1];
 nls=length(ls);
 obs=[.05;.1;.2;1];
 nobs=length(obs);
 
-idenTol=.25;
+greedy_dale_ests=zeros(N,N,nts,nobs,nls);
+greedy_dale_mses=zeros(nts,nobs,nls);
+greedy_dale_corrs=zeros(nts,nobs,nls);
 
-omp2_exact_dale_ests=zeros(N,N,nts,nobs,nls);
-omp2_exact_dale_mses=zeros(nts,nobs,nls);
-omp2_exact_dale_corrs=zeros(nts,nobs,nls);
+greedy_dale_ell_ests=zeros(N,N,nts,nobs,nls);
+greedy_dale_ell_mses=zeros(nts,nobs,nls);
+greedy_dale_ell_corrs=zeros(nts,nobs,nls);
 
-omp2_exact_dale_ell_ests=zeros(N,N,nts,nobs,nls);
-omp2_exact_dale_ell_mses=zeros(nts,nobs,nls);
-omp2_exact_dale_ell_corrs=zeros(nts,nobs,nls);
+GreedyIdents=zeros(N,nts,nobs,nls);
 
-omp3_exact_dale_ests=zeros(N,N,nts,nobs,nls);
-omp3_exact_dale_mses=zeros(nts,nobs,nls);
-omp3_exact_dale_corrs=zeros(nts,nobs,nls);
-
-omp3_exact_dale_ell_ests=zeros(N,N,nts,nobs,nls);
-omp3_exact_dale_ell_mses=zeros(nts,nobs,nls);
-omp3_exact_dale_ell_corrs=zeros(nts,nobs,nls);
-
-
-identsDOMP2=zeros(N,nts,nobs,nls);
-
-sl=7; %parameter picked from dist-dep 'cross-validation'
-
-
+%%
 for oo=1:nobs
 disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
@@ -94,33 +83,20 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
              tic;
              disp(['l ' num2str(l) ' of ' num2str(nls)])
 
-    %         [EW,identsDOMP2(:,tt,oo,l)]=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,DD,sls(sl),idenTol);
+            %Dale
 
-            [EW,identsDOMP2(:,tt,oo,l)]=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
+            EW=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
 
-            omp2_exact_dale_ests(:,:,tt,oo,l)=EW;
-            omp2_exact_dale_mses(tt,oo,l)=norm(EW-W,'fro')/norm(W,'fro');
-            omp2_exact_dale_corrs(tt,oo,l)=corr(EW(:),W(:));
-
-            [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
-            EW_ELL=diag(amp)*EW;
-
-            omp2_exact_dale_ell_ests(:,:,tt,oo,l)=EW_ELL;
-            omp2_exact_dale_ell_mses(tt,oo,l)=norm(EW_ELL-W,'fro')/norm(W,'fro');
-            omp2_exact_dale_ell_corrs(tt,oo,l)=corr(EW_ELL(:),W(:));
-
-            [EW,identsDOMP2(:,tt,oo,l)]=EstimateA_OMP3_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
-
-            omp3_exact_dale_ests(:,:,tt,oo,l)=EW;
-            omp3_exact_dale_mses(tt,oo,l)=norm(EW-W,'fro')/norm(W,'fro');
-            omp3_exact_dale_corrs(tt,oo,l)=corr(EW(:),W(:));
+            greedy_dale_ests(:,:,tt,oo,l)=EW;
+            greedy_dale_mses(tt,oo,l)=norm(EW-W,'fro')/norm(W,'fro');
+            greedy_dale_corrs(tt,oo,l)=corr(EW(:),W(:));
 
             [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
             EW_ELL=diag(amp)*EW;
 
-            omp3_exact_dale_ell_ests(:,:,tt,oo,l)=EW_ELL;
-            omp3_exact_dale_ell_mses(tt,oo,l)=norm(EW_ELL-W,'fro')/norm(W,'fro');
-            omp3_exact_dale_ell_corrs(tt,oo,l)=corr(EW_ELL(:),W(:));
+            greedy_dale_ell_ests(:,:,tt,oo,l)=EW_ELL;
+            greedy_dale_ell_mses(tt,oo,l)=norm(EW_ELL-W,'fro')/norm(W,'fro');
+            greedy_dale_ell_corrs(tt,oo,l)=corr(EW_ELL(:),W(:));
             
             toc
          end
@@ -128,9 +104,7 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
     end
 end
 figure; hold on;
-plot(squeeze(omp2_exact_dale_ell_corrs(1,:,:))','b')
-plot(squeeze(omp3_exact_dale_ell_corrs(1,:,:))','r')
-
+plot(squeeze(greedy_dale_ell_corrs(1,:,:))')
 
 
 
@@ -141,8 +115,8 @@ oo=1;
 tt=1;
 
 % parameters picked from 'cross-validation'
-ll=4;
-sll=7;
+ll=4; % mean penalty
+sll=9; % distance dependence
 
 
 maxRank=2;
@@ -183,12 +157,12 @@ sampled_spikes=observations.*spikes;
 
 [Cxx, Cxy,EW,rates,obs_count] = GetStat(sampled_spikes(:,1:ts(tt)),observations(:,1:ts(tt)),glasso,restricted_penalty,pos_def,est_spar,W);
 
-
-for i=1:niter
+%%
+for i=2:niter
     tic;
     disp(i)
     if i==1
-        EW=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),idenTol);
+        EW=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW=diag(amp)*EW;
 %         
@@ -197,16 +171,15 @@ for i=1:niter
         
         
     else
-        EW=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll)/2,M,fhat,sls(sll),idenTol);
+        EW=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),M,fhat,sls(sll),idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW=diag(amp)*EW;
         
-        EW_d=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,fhat_d,sls(sll),idenTol);
+        EW_d=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,fhat_d,sls(sll),idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW_d,Cxx,Cxy);
         EW_d=diag(amp)*EW_d;
         
-%         EW_m=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll)/2,M_m,fhat,0,idenTol);
-        EW_m=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll)/2,M_m,idenTol);
+        EW_m=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),M_m,idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW_m,Cxx,Cxy);
         EW_m=diag(amp)*EW_m;
     end
@@ -226,13 +199,13 @@ for i=1:niter
     
     
     %dist-dep
-    x=D(:); y=~~EW(:);
+    x=sbm.neuron_distances(:); y=~~EW(:);
     options = optimset('GradObj','on','Display','off','LargeScale','off');
     [new_ab,junk,exitflag]=fminunc(@(ab)logistic_opt(ab,x,y),[0;0],options);
-    fhat=reshape(sigm(new_ab(1)*D(:)+new_ab(2)),[N,N]);
+    fhat=reshape(sigm(new_ab(1)*sbm.neuron_distances(:)+new_ab(2)),[N,N]);
     allfhats{i}=fhat;
     
-    fhat_mses(i)=sum( (fhat(:)-DD(:)).^2)/sum(DD(:).^2);
+    fhat_mses(i)=sum( (fhat(:)-sbm.fd(:)).^2)/sum(sbm.fd(:).^2);
     
     %soft-impute
     MM=EW; MM(~~eye(N))=0;
@@ -246,12 +219,12 @@ for i=1:niter
     
     
     %dist-dep for distonly
-    x=D(:); y=~~EW_d(:);
+    x=sbm.neuron_distances(:); y=~~EW_d(:);
     options = optimset('GradObj','on','Display','off','LargeScale','off');
     [new_ab,junk,exitflag]=fminunc(@(ab)logistic_opt(ab,x,y),[0;0],options);
-    fhat_d=reshape(sigm(new_ab(1)*D(:)+new_ab(2)),[N,N]);
+    fhat_d=reshape(sigm(new_ab(1)*sbm.neuron_distances(:)+new_ab(2)),[N,N]);
     allfhats_distonly{i}=fhat_d;
-    fhat_mses_distonly(i)=sum( (fhat_d(:)-DD(:)).^2)/sum(DD(:).^2);
+    fhat_mses_distonly(i)=sum( (fhat_d(:)-sbm.fd(:)).^2)/sum(sbm.fd(:).^2);
     
     %SI for means only
     MM_m=EW_m; MM_m(~~eye(N))=0;
@@ -265,21 +238,21 @@ for i=1:niter
 
     toc
 end
-
+%%
 %estimate with both known
-omp2_known=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),MeanMatrix,DD,sls(sll),idenTol);
-[amp, ~]=logistic_ELL(rates,omp2_known,Cxx,Cxy);
-omp2_known_ell=diag(amp)*omp2_known;
+greedy_known=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),MeanMatrix,sbm.fd,sls(sll),idenTol);
+[amp, ~]=logistic_ELL(rates,greedy_known,Cxx,Cxy);
+greedy_known_ell=diag(amp)*greedy_known;
 
-omp2_known_corr=corr(omp2_known(:),W(:));
-omp2_known_ell_corr=corr(omp2_known_ell(:),W(:));
+greedy_known_corr=corr(greedy_known(:),W(:));
+greedy_known_ell_corr=corr(greedy_known_ell(:),W(:));
 
 
 figure; hold on; 
 plot(0:niter-1,loop_corrs); title('corr'); xlabel('iteration')
 plot(0:niter-1,loop_meanonly_corrs,'r');
 plot(0:niter-1,loop_distonly_corrs,'g');
-plot(0,omp2_known_ell_corr,'*r');
+plot(0,greedy_known_ell_corr,'*r');
 
 xlabel('iteration'); ylabel('correlation')
 legend 'full model' 'inferring mean' 'inferring dist dep' 'known mean and dist dep'
@@ -297,46 +270,45 @@ lasso_dale=EstimateA_L1_logistic_Accurate_Dale_Iter(Cxx,Cxy,rates,est_spar,N_sti
 [amp, Ebias2]=logistic_ELL(rates,lasso_dale,Cxx,Cxy);
 lasso_dale_ell=diag(amp)*lasso_dale;
 
-%omp2 without means
-omp2_EW=EstimateA_OMP2_Exact(Cxx,Cxy,rates,est_spar,0,zeros(N));
-[amp, Ebias2]=logistic_ELL(rates,omp2_EW,Cxx,Cxy);
-omp2_EW_ell=diag(amp)*omp2_EW;
+%greedy without means
+greedy_EW=EstimateA_Greedy(Cxx,Cxy,rates,est_spar,0,zeros(N));
+[amp, Ebias2]=logistic_ELL(rates,greedy_EW,Cxx,Cxy);
+greedy_EW_ell=diag(amp)*greedy_EW;
 
-%omp2 without means with dale
-omp2_EW_dale=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,M,idenTol);
-[amp, Ebias2]=logistic_ELL(rates,omp2_EW_dale,Cxx,Cxy);
-omp2_EW_dale_ell=diag(amp)*omp2_EW_dale;
+%greedy without means with dale
+greedy_EW_dale=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,M,idenTol);
+[amp, Ebias2]=logistic_ELL(rates,greedy_EW_dale,Cxx,Cxy);
+greedy_EW_dale_ell=diag(amp)*greedy_EW_dale;
 
 
-%omp2 with inferring means dale
-omp2_infer_m=allEWs_meanonly{end};
+%greedy with inferring means dale
+greedy_infer_m=allEWs_meanonly{end};
 
-%omp2 with inferring distdep dale
-omp2_infer_d=allEWs_distonly{end};
+%greedy with inferring distdep dale
+greedy_infer_d=allEWs_distonly{end};
 
-%omp2 with inferring means dale distdep
-omp2_infer_both=allEWs{end};
+%greedy with inferring means dale distdep
+greedy_infer_both=allEWs{end};
 
-%% make bar figure
-%lassoEW omp2_EW omp2_EW_dale lasso_dale omp2_EW_infer_m omp2_EW_infer_d opm2_known
-
+% make bar figure
+%lassoEW greedy_EW greedy_EW_dale lasso_dale greedy_EW_infer_m greedy_EW_infer_d opm2_known
 % [R,C,Z,S] = GetWeightsErrors(true_A,EA);
 
 [lassoR,lassoC,lassoZ,lassoS] = GetWeightsErrors(W,lassoEW_ell);
 
 [lasso_dale_R,lasso_dale_C,lasso_dale_Z,lasso_dale_S] = GetWeightsErrors(W,lasso_dale_ell);
 
-[omp2_R,omp2_C,omp2_Z,omp2_S] = GetWeightsErrors(W,omp2_EW_ell);
+[greedy_R,greedy_C,greedy_Z,greedy_S] = GetWeightsErrors(W,greedy_EW_ell);
 
-[omp2_dale_R,omp2_dale_C,omp2_dale_Z,omp2_dale_S] = GetWeightsErrors(W,omp2_EW_dale_ell);
+[greedy_dale_R,greedy_dale_C,greedy_dale_Z,greedy_dale_S] = GetWeightsErrors(W,greedy_EW_dale_ell);
 
-[omp2_infer_m_R,omp2_infer_m_C,omp2_infer_m_Z,omp2_infer_m_S] = GetWeightsErrors(W,omp2_infer_m);
+[greedy_infer_m_R,greedy_infer_m_C,greedy_infer_m_Z,greedy_infer_m_S] = GetWeightsErrors(W,greedy_infer_m);
 
-[omp2_infer_d_R,omp2_infer_d_C,omp2_infer_d_Z,omp2_infer_d_S] = GetWeightsErrors(W,omp2_infer_d);
+[greedy_infer_d_R,greedy_infer_d_C,greedy_infer_d_Z,greedy_infer_d_S] = GetWeightsErrors(W,greedy_infer_d);
 
-[omp2_infer_both_R,omp2_infer_both_C,omp2_infer_both_Z,omp2_infer_both_S] = GetWeightsErrors(W,omp2_infer_both);
+[greedy_infer_both_R,greedy_infer_both_C,greedy_infer_both_Z,greedy_infer_both_S] = GetWeightsErrors(W,greedy_infer_both);
 
-[omp2_known_R,omp2_known_C,omp2_known_Z,omp2_known_S] = GetWeightsErrors(W,omp2_known_ell);
+[greedy_known_R,greedy_known_C,greedy_known_Z,greedy_known_S] = GetWeightsErrors(W,greedy_known_ell);
 
 
 %create bar plot
@@ -348,22 +320,22 @@ fontsize2=1.5*fontsize;
 
 % bar( [R,correlation, zero_matching,sign_matching] );  
 figure; subplot(4,1,1);
-bar([lassoR,lasso_dale_R,omp2_R,omp2_dale_R,omp2_infer_m_R,omp2_infer_d_R,omp2_infer_both_R,omp2_known_R]);
+bar([lassoR,lasso_dale_R,greedy_R,greedy_dale_R,greedy_infer_m_R,greedy_infer_d_R,greedy_infer_both_R,greedy_known_R]);
 ylim([0 1]); title('R')
 set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 subplot(4,1,2);
-bar([lassoC,lasso_dale_C,omp2_C,omp2_dale_C,omp2_infer_m_C,omp2_infer_d_C,omp2_infer_both_C,omp2_known_C]);
+bar([lassoC,lasso_dale_C,greedy_C,greedy_dale_C,greedy_infer_m_C,greedy_infer_d_C,greedy_infer_both_C,greedy_known_C]);
 ylim([0 1]); title('C')
 set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 subplot(4,1,3);
-bar([lassoZ,lasso_dale_Z,omp2_Z,omp2_dale_Z,omp2_infer_m_Z,omp2_infer_d_Z,omp2_infer_both_Z,omp2_known_Z]);
+bar([lassoZ,lasso_dale_Z,greedy_Z,greedy_dale_Z,greedy_infer_m_Z,greedy_infer_d_Z,greedy_infer_both_Z,greedy_known_Z]);
 ylim([0 1]); title('Z')
 set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 subplot(4,1,4);
-bar([lassoS,lasso_dale_S,omp2_S,omp2_dale_S,omp2_infer_m_S,omp2_infer_d_S,omp2_infer_both_S,omp2_known_S]);
+bar([lassoS,lasso_dale_S,greedy_S,greedy_dale_S,greedy_infer_m_S,greedy_infer_d_S,greedy_infer_both_S,greedy_known_S]);
 ylim([0 1]); title('S')
 set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
@@ -381,27 +353,27 @@ subplot(4,2,2); plot(W(:),lassoEW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$');
 subplot(4,2,3); imagesc(lasso_dale_ell); colorbar; title('lasso+Dale'); caxis(cc);
 subplot(4,2,4); plot(W(:),lasso_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('lasso+Dale');
 
-subplot(4,2,5); imagesc(omp2_EW_ell); colorbar; title('OMP'); caxis(cc);
-subplot(4,2,6); plot(W(:),omp2_EW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP');
+subplot(4,2,5); imagesc(greedy_EW_ell); colorbar; title('OMP'); caxis(cc);
+subplot(4,2,6); plot(W(:),greedy_EW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP');
 
-subplot(4,2,7); imagesc(omp2_EW_dale_ell); colorbar; title('OMP+Dale'); caxis(cc);
-subplot(4,2,8); plot(W(:),omp2_EW_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale');
+subplot(4,2,7); imagesc(greedy_EW_dale_ell); colorbar; title('OMP+Dale'); caxis(cc);
+subplot(4,2,8); plot(W(:),greedy_EW_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale');
 
 
 figure;
-subplot(4,2,1); imagesc(omp2_infer_m); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
-subplot(4,2,2); plot(W(:),omp2_infer_m(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
+subplot(4,2,1); imagesc(greedy_infer_m); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
+subplot(4,2,2); plot(W(:),greedy_infer_m(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
 
-subplot(4,2,3); imagesc(omp2_infer_d); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
-subplot(4,2,4); plot(W(:),omp2_infer_d(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
+subplot(4,2,3); imagesc(greedy_infer_d); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
+subplot(4,2,4); plot(W(:),greedy_infer_d(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
 
-subplot(4,2,5); imagesc(omp2_infer_both); colorbar; title('OMP+Dale+Infer M and D'); caxis(cc);
-subplot(4,2,6); plot(W(:),omp2_infer_both(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M and D');
+subplot(4,2,5); imagesc(greedy_infer_both); colorbar; title('OMP+Dale+Infer M and D'); caxis(cc);
+subplot(4,2,6); plot(W(:),greedy_infer_both(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M and D');
 
-subplot(4,2,7); imagesc(omp2_known_ell); colorbar; title('OMP+Dale+Known M and D'); caxis(cc);
-subplot(4,2,8); plot(W(:),omp2_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Known M and D');
+subplot(4,2,7); imagesc(greedy_known_ell); colorbar; title('OMP+Dale+Known M and D'); caxis(cc);
+subplot(4,2,8); plot(W(:),greedy_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Known M and D');
 
 %% Save estimates
 
-save('results.mat','params','W','lassoEW_ell','lasso_dale_ell','omp2_EW_ell','omp2_EW_dale_ell','omp2_infer_m','omp2_infer_d',...
-    'omp2_infer_both','omp2_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m');
+save('results.mat','params','W','lassoEW_ell','lasso_dale_ell','greedy_EW_ell','greedy_EW_dale_ell','greedy_infer_m','greedy_infer_d',...
+    'greedy_infer_both','greedy_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m');
