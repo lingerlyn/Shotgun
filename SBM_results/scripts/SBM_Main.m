@@ -39,13 +39,15 @@ if strcmp(conn_type,'block')
     blockFracs=[1/2;1/2];
     
     if DistDep
+        %generate positions on 1d ring
+        neuron_positions=linspace(.5*1/N,1-.5*1/N,N)';
+        neuron_positions=neuron_positions(randperm(N)); %shuffle neuron positions
         sigm=@(z) 1./(1+exp(-z));
         distfun=@(a,b,x) sigm(a*x+b);
-        neuron_positions=rand(N,1);
+%         neuron_positions=rand(N,1);
         distdep_a=-15;
         distdep_b=1.4;
         pconn=[];
-        
     else
         pconn=spar*ones(length(blockFracs));
         distfun=[];
