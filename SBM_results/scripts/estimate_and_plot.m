@@ -19,7 +19,7 @@ EW_d_corr=zeros(nts,nobs,nsls,1);
 EW_d_ell_corr=zeros(nts,nobs,nsls,1);
 
 
-for oo=1:nobs
+for oo=1
 disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
     for tt=1:nts
@@ -33,7 +33,8 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
         for l=1:nsls
             disp(l)
-            EW_d{tt,oo,l}=EstimateA_OMP4_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),sbm.fd,sls(l),idenTol);
+            EW_d{tt,oo,l}=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),sbm.fd,sls(l),idenTol);
+%             EW_d{tt,oo,l}=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),sbm.fd,sls(l),idenTol);
             [amp, Ebias2]=logistic_ELL(rates,EW_d{tt,oo,l},Cxx,Cxy);
             EW_d_ell{tt,oo,l}=diag(amp)*EW_d{tt,oo,l};
             EW_d_corr(tt,oo,l)=corr(EW_d{tt,oo,l}(:),W(:));
@@ -42,10 +43,12 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
     
     end
 end
-figure; plot(squeeze(EW_d_ell_corr(1,1,:)),'.')
+%
+% figure; plot(squeeze(EW_d_ell_corr(1,1,:)),'.')
+[~,sll]=max(squeeze(EW_d_ell_corr(1,1,:)));
 
 % Now find correct mean penalty parameter
-%%
+%
 ts=T;
 nts=length(ts);
 
@@ -65,8 +68,8 @@ greedy_dale_ell_corrs=zeros(nts,nobs,nls);
 
 GreedyIdents=zeros(N,nts,nobs,nls);
 
-%%
-for oo=1:nobs
+%
+for oo=1
 disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
     for tt=1:nts
@@ -85,7 +88,9 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
             %Dale
 
-            EW=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
+            [EW,GreedyIndents(:,tt,oo,l)]=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
+%             [EW,GreedyIndents(:,tt,oo,l)]=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(l),MeanMatrix,idenTol);
+
 
             greedy_dale_ests(:,:,tt,oo,l)=EW;
             greedy_dale_mses(tt,oo,l)=norm(EW-W,'fro')/norm(W,'fro');
@@ -103,21 +108,28 @@ disp(['                           obs ' num2str(oo) ' of ' num2str(nobs)])
 
     end
 end
-figure; hold on;
-plot(squeeze(greedy_dale_ell_corrs(1,:,:))')
+% figure; hold on;
+% plot(squeeze(greedy_dale_ell_corrs(1,:,:))')
+
+[~,ll]=max(squeeze(greedy_dale_ell_corrs(1,1,:)));
 
 
-
-%% now loop to infer unknown mean and distdep
+% now loop to infer unknown mean and distdep
 
 %which observation level / amount of time to use
 oo=1;
 tt=1;
 
 % parameters picked from 'cross-validation'
-ll=4; % mean penalty
-sll=9; % distance dependence
+% ll=4; % mean penalty
+% sll=9; % distance dependence
 
+% ll=4; %from the 'high' var stuff
+% sll=8;
+%%
+opt_lambda_M=ls(ll)/2;
+opt_lambda_D=sls(sll)/2;
+%
 
 maxRank=2;
 nLambda=50;
@@ -157,12 +169,13 @@ sampled_spikes=observations.*spikes;
 
 [Cxx, Cxy,EW,rates,obs_count] = GetStat(sampled_spikes(:,1:ts(tt)),observations(:,1:ts(tt)),glasso,restricted_penalty,pos_def,est_spar,W);
 
-%%
-for i=2:niter
+%
+for i=1:niter
     tic;
     disp(i)
     if i==1
         EW=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),idenTol);
+%         EW=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,0,zeros(N),idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW=diag(amp)*EW;
 %         
@@ -171,15 +184,18 @@ for i=2:niter
         
         
     else
-        EW=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),M,fhat,sls(sll),idenTol);
+        EW=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,M,fhat,opt_lambda_D,idenTol);
+%         EW=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,M,fhat,opt_lambda_D,idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW=diag(amp)*EW;
         
-        EW_d=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,fhat_d,sls(sll),idenTol);
+        EW_d=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,fhat_d,opt_lambda_D,idenTol);
+%         EW_d=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,fhat_d,opt_lambda_D,idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW_d,Cxx,Cxy);
         EW_d=diag(amp)*EW_d;
         
-        EW_m=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),M_m,idenTol);
+        EW_m=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,M_m,idenTol);
+%         EW_m=EstimateA_OMP2_Exact_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,M_m,idenTol);
         [amp, Ebias2]=logistic_ELL(rates,EW_m,Cxx,Cxy);
         EW_m=diag(amp)*EW_m;
     end
@@ -238,9 +254,10 @@ for i=2:niter
 
     toc
 end
-%%
+%
 %estimate with both known
-greedy_known=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,ls(ll),MeanMatrix,sbm.fd,sls(sll),idenTol);
+greedy_known=EstimateA_Greedy_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,MeanMatrix,sbm.fd,opt_lambda_D,idenTol);
+% greedy_known=EstimateA_OMP2_Exact_DistDep_Dale_Iter(Cxx,Cxy,rates,est_spar,opt_lambda_M,MeanMatrix,sbm.fd,opt_lambda_D,idenTol);
 [amp, ~]=logistic_ELL(rates,greedy_known,Cxx,Cxy);
 greedy_known_ell=diag(amp)*greedy_known;
 
@@ -276,7 +293,7 @@ greedy_EW=EstimateA_Greedy(Cxx,Cxy,rates,est_spar,0,zeros(N));
 greedy_EW_ell=diag(amp)*greedy_EW;
 
 %greedy without means with dale
-greedy_EW_dale=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,lambda,M,idenTol);
+greedy_EW_dale=EstimateA_Greedy_Dale_Iter(Cxx,Cxy,rates,est_spar,0,M,idenTol);
 [amp, Ebias2]=logistic_ELL(rates,greedy_EW_dale,Cxx,Cxy);
 greedy_EW_dale_ell=diag(amp)*greedy_EW_dale;
 
@@ -376,4 +393,4 @@ subplot(4,2,8); plot(W(:),greedy_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W
 %% Save estimates
 
 save('results.mat','params','W','lassoEW_ell','lasso_dale_ell','greedy_EW_ell','greedy_EW_dale_ell','greedy_infer_m','greedy_infer_d',...
-    'greedy_infer_both','greedy_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m');
+    'greedy_infer_both','greedy_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m','opt_lambda_M','opt_lambda_D');
