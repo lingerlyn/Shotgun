@@ -41,11 +41,11 @@ if strcmp(conn_type,'block')
     if DistDep
         sigm=@(z) 1./(1+exp(-z));
         distfun=@(a,b,x) sigm(a*x+b);
-%         neuron_positions=rand(N,1);
-        neuron_positions=linspace(.5*1/N,1-.5*1/N,N)';
+%         neuron_positions=linspace(.5*1/N,1-.5*1/N,N)';
+        neuron_positions=linspace(0,1,N);
         neuron_positions=neuron_positions(randperm(N)); %shuffle neuron positions
         distdep_a=-15;
-        distdep_b=1.4;
+        distdep_b=1.3;
         pconn=[];
         
     else
@@ -93,7 +93,8 @@ if strcmp(conn_type,'block')
     end
     
     if DistDep
-        neuron_distances=abs(repmat(neuron_positions,[1,N])-repmat(neuron_positions',[N,1]));
+%         neuron_distances=abs(repmat(neuron_positions,[1,N])-repmat(neuron_positions',[N,1]));
+        abs(mod(bsxfun(@plus,neuron_positions',-neuron_positions)+0.5,1)-0.5);
         fd=distfun(distdep_a,distdep_b,neuron_distances); %distance-dependent connection probs
     else
         neuron_distances=[];
@@ -119,6 +120,14 @@ RunningTime.GetWeights=toc;
 
 if ~isempty(target_rates)
     bias=SetBiases(W,target_rates*ones(N,1));
+end
+
+%sorted W
+if DistDep
+    [~,idx]=sort(neuron_positions);
+    sortedW=W(idx,idx);
+else
+    sortedW=[];
 end
 
 %% Generate Spikes

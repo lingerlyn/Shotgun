@@ -126,7 +126,7 @@ tt=1;
 
 % ll=4; %from the 'high' var stuff
 % sll=8;
-%%
+%
 opt_lambda_M=ls(ll)/2;
 opt_lambda_D=sls(sll)/2;
 %
@@ -215,7 +215,9 @@ for i=1:niter
     
     
     %dist-dep
-    x=sbm.neuron_distances(:); y=~~EW(:);
+%     x=sbm.neuron_distances(:); y=~~EW(:);
+    x=sbm.neuron_distances(~eye(N)); y=~~EW(~eye(N));
+    x=x(:); y=y(:);
     options = optimset('GradObj','on','Display','off','LargeScale','off');
     [new_ab,junk,exitflag]=fminunc(@(ab)logistic_opt(ab,x,y),[0;0],options);
     fhat=reshape(sigm(new_ab(1)*sbm.neuron_distances(:)+new_ab(2)),[N,N]);
@@ -235,7 +237,9 @@ for i=1:niter
     
     
     %dist-dep for distonly
-    x=sbm.neuron_distances(:); y=~~EW_d(:);
+%     x=sbm.neuron_distances(:); y=~~EW_d(:);
+    x=sbm.neuron_distances(~eye(N)); y=~~EW_d(~eye(N));
+    x=x(:); y=y(:);
     options = optimset('GradObj','on','Display','off','LargeScale','off');
     [new_ab,junk,exitflag]=fminunc(@(ab)logistic_opt(ab,x,y),[0;0],options);
     fhat_d=reshape(sigm(new_ab(1)*sbm.neuron_distances(:)+new_ab(2)),[N,N]);
@@ -274,7 +278,7 @@ plot(0,greedy_known_ell_corr,'*r');
 xlabel('iteration'); ylabel('correlation')
 legend 'full model' 'inferring mean' 'inferring dist dep' 'known mean and dist dep'
 
-%% Estimate other stuff
+% Estimate other stuff
 
 %lasso estimation
 pen_diag=0; warm=0; N_stim=0;
@@ -358,39 +362,39 @@ set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 %% color + scatter plots
 
-set(0,'DefaultTextInterpreter', 'latex');
-
-cc=[-2,2]; %have to pick after looking after them once
-
-%names: 'lasso+dale','OMP','OMP+dale','OMP+infer means','OMP+infer dd','OMP+infer both','OMP+known means & dd'
-figure; 
-subplot(4,2,1); imagesc(lassoEW_ell); colorbar; title('lasso'); caxis(cc);
-subplot(4,2,2); plot(W(:),lassoEW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('lasso');
-
-subplot(4,2,3); imagesc(lasso_dale_ell); colorbar; title('lasso+Dale'); caxis(cc);
-subplot(4,2,4); plot(W(:),lasso_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('lasso+Dale');
-
-subplot(4,2,5); imagesc(greedy_EW_ell); colorbar; title('OMP'); caxis(cc);
-subplot(4,2,6); plot(W(:),greedy_EW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP');
-
-subplot(4,2,7); imagesc(greedy_EW_dale_ell); colorbar; title('OMP+Dale'); caxis(cc);
-subplot(4,2,8); plot(W(:),greedy_EW_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale');
-
-
-figure;
-subplot(4,2,1); imagesc(greedy_infer_m); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
-subplot(4,2,2); plot(W(:),greedy_infer_m(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
-
-subplot(4,2,3); imagesc(greedy_infer_d); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
-subplot(4,2,4); plot(W(:),greedy_infer_d(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
-
-subplot(4,2,5); imagesc(greedy_infer_both); colorbar; title('OMP+Dale+Infer M and D'); caxis(cc);
-subplot(4,2,6); plot(W(:),greedy_infer_both(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M and D');
-
-subplot(4,2,7); imagesc(greedy_known_ell); colorbar; title('OMP+Dale+Known M and D'); caxis(cc);
-subplot(4,2,8); plot(W(:),greedy_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Known M and D');
+% set(0,'DefaultTextInterpreter', 'latex');
+% 
+% cc=[-2,2]; %have to pick after looking after them once
+% 
+% %names: 'lasso+dale','OMP','OMP+dale','OMP+infer means','OMP+infer dd','OMP+infer both','OMP+known means & dd'
+% figure; 
+% subplot(4,2,1); imagesc(lassoEW_ell); colorbar; title('lasso'); caxis(cc);
+% subplot(4,2,2); plot(W(:),lassoEW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('lasso');
+% 
+% subplot(4,2,3); imagesc(lasso_dale_ell); colorbar; title('lasso+Dale'); caxis(cc);
+% subplot(4,2,4); plot(W(:),lasso_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('lasso+Dale');
+% 
+% subplot(4,2,5); imagesc(greedy_EW_ell); colorbar; title('OMP'); caxis(cc);
+% subplot(4,2,6); plot(W(:),greedy_EW_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP');
+% 
+% subplot(4,2,7); imagesc(greedy_EW_dale_ell); colorbar; title('OMP+Dale'); caxis(cc);
+% subplot(4,2,8); plot(W(:),greedy_EW_dale_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale');
+% 
+% 
+% figure;
+% subplot(4,2,1); imagesc(greedy_infer_m); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
+% subplot(4,2,2); plot(W(:),greedy_infer_m(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
+% 
+% subplot(4,2,3); imagesc(greedy_infer_d); colorbar; title('OMP+Dale+Infer M'); caxis(cc);
+% subplot(4,2,4); plot(W(:),greedy_infer_d(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M');
+% 
+% subplot(4,2,5); imagesc(greedy_infer_both); colorbar; title('OMP+Dale+Infer M and D'); caxis(cc);
+% subplot(4,2,6); plot(W(:),greedy_infer_both(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Infer M and D');
+% 
+% subplot(4,2,7); imagesc(greedy_known_ell); colorbar; title('OMP+Dale+Known M and D'); caxis(cc);
+% subplot(4,2,8); plot(W(:),greedy_known_ell(:),'.'); xlabel('W'); ylabel('$\hat{W}$'); title('OMP+Dale+Known M and D');
 
 %% Save estimates
 
-save('results.mat','params','W','lassoEW_ell','lasso_dale_ell','greedy_EW_ell','greedy_EW_dale_ell','greedy_infer_m','greedy_infer_d',...
+save('results.mat','params','W','sortedW','lassoEW_ell','lasso_dale_ell','greedy_EW_ell','greedy_EW_dale_ell','greedy_infer_m','greedy_infer_d',...
     'greedy_infer_both','greedy_known_ell','allEWs','allEWs_distonly','allEWs_meanonly','allMs','allMs_m','opt_lambda_M','opt_lambda_D');
