@@ -35,7 +35,7 @@ spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,N_stim,stim_type, n
 if strcmp(conn_type,'block')
     DistDep=1; %distance dependent connectivity
     Realistic=1; %Adhere to Dale's law and add a negative diagonal
-    str_var=.005; %variance of block weights
+    str_var=.05; %variance of block weights
     blockFracs=[1/2;1/2];
     
     if DistDep
@@ -142,7 +142,7 @@ observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
 sampled_spikes=observations.*spikes;
 RunningTime.SampleSpikes=toc;
 
-figure; imagesc(spikes)
+% figure; imagesc(spikes)
 
 % spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
 % observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
@@ -162,3 +162,5 @@ end
 est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
 %% Estimate sufficeint statistics
 addpath('EstimateStatistics');
+
+estimate_and_plot
