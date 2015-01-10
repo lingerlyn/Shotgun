@@ -2,6 +2,10 @@ function stim=GetStim(N_stim,T,stim_type)
 %GETSTIM Summary of this function goes here
 %   Detailed explanation goes here
 stim=zeros(N_stim,T);
+if N_stim==0    
+    return
+end
+
 switch stim_type
     case 'none'
         disp('stimulus=0');
@@ -18,6 +22,24 @@ switch stim_type
         
         for ii=1:N_stim
             stim(ii,:)=pulse_mag*((mod(1:T,N_stim)+1)==ii);
+        end
+     case 'Markov'
+        state_num=N_stim;
+        pulse_mag=30*(rand(state_num,1)-0.5);
+        pulse_std=15;
+        A=0.00004*diag(rand(state_num,1)); %rate of each state
+        
+        state=zeros(state_num,1);
+        state(randi(state_num))=1;        
+        
+        transition_mat=A*rand(state_num);
+        transition_mat(eye(state_num)>0.5)=0;
+        transition_mat(eye(state_num)>0.5)=1-sum(transition_mat,1);
+        
+        for tt=1:T
+            p_next=transition_mat*state;            
+            state=diff([0; cumsum(p_next)>rand]);
+            stim(:,tt)=(pulse_mag+pulse_std*randn).*state;
         end
      case 'sine'
         T_pulse=1e4;

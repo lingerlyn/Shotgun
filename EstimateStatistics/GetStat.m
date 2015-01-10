@@ -1,8 +1,10 @@
-function [ CXX, CXY,W,rates,obs_count] = GetStat( sampled_spikes,observations,glasso,restricted_penalty,pos_def,sparsity,true_W)
+function [ CXX, CXY,W,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,sparsity,true_W)
 % inputs:
-% sampled_spikes -NxT observed spikes (with NaNs in unobsereved samples)
+% sampled_spikes -NxT observed spikes (with zeros in unobsereved samples)
+% observations - NxT matrix of which timebins were observed
 % glasso - flag that indicate whether or not use glasso
 % restricted_penalty - flag that indicates whether or not to use a restricted l1 penality in lasso (only on parts of the inv_COV matrix)
+% pos_def - restict Covariance matrix to be positive semi definite
 % sparsity-  the average nnz in the inv(CXX) matrix.  if empty, test using true matrix
 % true_W - for  testing purposes
 

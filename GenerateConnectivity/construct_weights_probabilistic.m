@@ -9,7 +9,7 @@ function [ W ] = construct_weights_probabilistic(N, spar,inhib_frac)
 % OUTPUT
 % N x N weight matrix
 
-addpath('../Misc') % so we can use the GetProb function
+% addpath('../Misc') % so we can use the GetProb function
 
 
 W = -1*eye(N); % diagonal negative

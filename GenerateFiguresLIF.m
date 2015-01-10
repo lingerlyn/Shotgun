@@ -7,10 +7,10 @@ addpath('Results')
 addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
-set(0,'DefaultAxesFontSize',11)
-subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.08], [0.06 0.05], [0.1 0.01]);
+set(0,'DefaultAxesFontSize',12)
+subplot = @(m,n,p) subtightplot (m, n, p, [0.07 0.1], [0.07 0.05], [0.1 0.01]);
 T=5e5;
-N=1e3;
+N=50;
 %% Figure 1 - Toy model 
 % In this figure:
 % N=50, 
@@ -19,15 +19,12 @@ N=1e3;
 % balanced network (no Dale's law yet)
 
 % observations_ratios= [1,0.5,0.2,0.1,0.04,0.02];
-% observations_ratios= [1,0.2,0.1,0.04];
-% observations_ratios= [1,0.2,0.1,0.04];
-observations_ratios= [1,0.2,0.1];
-
+observations_ratios= [1,0.2,0.1,0.04];
 L=length(observations_ratios);
 K=5; %width of subplots
 x_ticks={'R','C','Z','S'};
-fontsize=10;
-fontsize2=fontsize; 
+fontsize=12;
+fontsize2=1.3*fontsize; 
 if N==50
     dot_size=100; %for scatter plots
 else
@@ -42,7 +39,7 @@ figure(1)
 
 %%
 for ii=1:L
-    load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '.mat'],'W','EW2');
+    load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '_LIF.mat'],'W','EW2');
     
 %     mi=min([ W(:); EW2(:)] );ma=max([W(:); EW2(:)]);
 %     mi2=min([ EW2(:)] );ma2=max([ EW2(:)]);
@@ -96,4 +93,4 @@ for ii=1:L
 end
 
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
-Export2Folder(['Sparsity_N=' num2str(N) '.tif'],target_folder) 
+Export2Folder(['LIF_figure.eps'],target_folder) 

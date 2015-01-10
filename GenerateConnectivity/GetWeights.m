@@ -1,10 +1,12 @@
-function W = GetWeights( N,network_type,spar, seed,scale,N_stim,sbmparams)
+function W = GetWeights( N,network_type,spar, seed,scale,N_stim,stim_type,sbmparams)
 %GetWeights Summary of this function goes here
 % N - number of neurons
 % network_type - what kind of connectivity to use (note each connectivity has additional parameters)
 % spar - sparsity level
 % seed - seed used to generate the random connections
 % scale - weights are multiplied by this constant
+% N_stim - number of stimuli
+% stim_type - stimulus type
 
 if ~isempty(seed)
     stream = RandStream('mt19937ar','Seed',seed);
@@ -56,8 +58,28 @@ switch network_type
 end
 
     A=A*scale; 
-%     G=scale*(rand(N,N_stim)<spar);
-    G=ones(N,N_stim);
+    
+    if strcmp(stim_type,'Markov')
+        % use clusterd inputs
+        G=(rand(N,N_stim)-0.5);
+        for nn=1:N_stim
+            kk=randi(round(1/spar));
+            ind_low=(1:N)<max(1,round((kk-1)*N*spar));
+            ind_high=(1:N)>min(N,round(kk*N*spar));        
+            G(ind_low,nn)=0;
+            G(ind_high,nn)=0;
+        end
+        
+        % use soft clustered structure
+        for kk=1:round(1/spar)
+                ind_low=(1:N)<max(1,round((kk-1)*N*spar)+1);
+                ind_high=(1:N)>min(N,round(kk*N*spar)-1);
+                ind_range=((~ind_low).*(~ind_high))>0.5;
+                A(ind_range,ind_range)=5*A(ind_range,ind_range);
+        end
+    else
+        G=ones(N,N_stim);
+    end
 %     G=zeros(N,N_stim);
 %     G(1,1)=1;
 %     G(2,2)=1;   

@@ -7,8 +7,8 @@ addpath('Results')
 addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
-set(0,'DefaultAxesFontSize',11)
-subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.08], [0.06 0.05], [0.1 0.01]);
+set(0,'DefaultAxesFontSize',12)
+subplot = @(m,n,p) subtightplot (m, n, p, [0.05 0.1], [0.05 0.05], [0.1 0.01]);
 T=5e5;
 N=1e3;
 %% Figure 1 - Toy model 
@@ -21,13 +21,12 @@ N=1e3;
 % observations_ratios= [1,0.5,0.2,0.1,0.04,0.02];
 % observations_ratios= [1,0.2,0.1,0.04];
 % observations_ratios= [1,0.2,0.1,0.04];
-observations_ratios= [1,0.2,0.1];
-
+observations_ratios= [1,0.2];
 L=length(observations_ratios);
-K=5; %width of subplots
+K=4; %width of subplots
 x_ticks={'R','C','Z','S'};
-fontsize=10;
-fontsize2=fontsize; 
+fontsize=12;
+fontsize2=1.3*fontsize; 
 if N==50
     dot_size=100; %for scatter plots
 else
@@ -58,10 +57,6 @@ for ii=1:L
     xlabel('W','fontsize',fontsize2)
     ylabel('W','fontsize',fontsize2)
     axis([mi ma mi2 ma2])
-    subplot(L+1,K,5)
-    y_ticks=[1,1,1,1];   
-    bar(y_ticks);    
-    set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
     
     subplot(L+1,K,K*ii+[3 4])
     A_ind=linspace(mi,ma,100);
@@ -73,27 +68,17 @@ for ii=1:L
 %     legend('x=y','EW2','EW22')
     xlabel('W','fontsize',fontsize2)
     ylabel('$\hat{W}$','fontsize',fontsize2)
-
-    
-   subplot(L+1,K,K*ii+5)
      [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW2 );
-%     [MSE2,correlation2,SE2] = GetWeightsErrors( W,EW22 );
+    text(-1+0.1,0.8,['$\rho$=' num2str(correlation)])
 
-    bar( [R,correlation, zero_matching,sign_matching] );    
-    ylim([0 1])
-    set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
-%     title({[' EW2 corr =' num2str(correlation) ', EW22 corr =' num2str(correlation2)]; ...
-%          [' EW2 MSE =' num2str(MSE) ', EW22 MSE =' num2str(MSE2)]; ...
-%          [' EW2 SE =' num2str(SE) ', EW22 SE =' num2str(SE2) ]});
-%     hold off
-
-    
+         
     subplot(L+1,K,K*ii+[1 2])    
     imagesc(EW2,[mi ma]); h=colorbar;
     set(h, 'ylim', [mi ma])
     ylabel(['$p_{\mathrm{obs}}=$' num2str(observations_ratios(ii))],'fontsize',fontsize2)
     
+    
 end
 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
-Export2Folder(['Sparsity_N=' num2str(N) '.tif'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Presentation&Figures'
+Export2Folder(['Sparsity_N=' num2str(N) '.png'],target_folder) 

@@ -18,7 +18,22 @@ else
     stim_str=[];
 end
 
-file_name=fullfile('Results',['Run_N=' num2str(N) '_obs=' num2str(obs) '_T=' num2str(T) stim_str sample_type '.mat']);
+if strcmp(params.spike_gen.neuron_type,'LIF')   
+    neuron_str=['_LIF'];
+else
+    neuron_str=[];
+end
+
+if strcmp(params.conn_est_flags.est_type,'Gibbs')   
+    est_type_str=['_Gibbs'];
+elseif strcmp(params.conn_est_flags.est_type,'FullyObservedGLM')   
+    est_type_str=['_FullyObservedGLM'];
+else
+    est_type_str=[];
+end
+
+
+file_name=fullfile('Results',['Run_N=' num2str(N) '_obs=' num2str(obs) '_T=' num2str(T) stim_str sample_type neuron_str est_type_str '.mat']);
 
 end
 

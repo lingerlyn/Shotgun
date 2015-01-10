@@ -1,4 +1,4 @@
-function [ Etas ] = sample_spikes(obs_neurons, Theta, thres, X, L, burnin, initial_Eta, W)
+function [ Etas ] = GibbsSampleSpikes(obs_neurons, Theta, thres, X, L, burnin, initial_Eta, W)
 %% GIBBS_LOGISTIC 
 %  Gibbs samples the unobserved spikes given current estimates of parametes
 

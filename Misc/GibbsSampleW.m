@@ -1,4 +1,4 @@
-function [ W, W_rb ] = sample_W( W, Theta, thres, Eta, X, a, mu_0, var_0)
+function [ W, W_rb ] = GibbsSampleW( W, Theta, thres, Eta, X, a, mu_0, std_0)
 %% SAMPLE_W 
 %  Gibbs samples the weight matrix given the spiking data and prior parameters
 
@@ -10,7 +10,7 @@ function [ W, W_rb ] = sample_W( W, Theta, thres, Eta, X, a, mu_0, var_0)
 % obs_neurons - N x T observation matrix
 % a = prior zero weight probability
 % mu_0 = prior slab mean
-% var_0 = prior slab variance
+% std_0 = prior slab variance
 
 %% OUTPUT
 % W - N x N sampled connectivity matrix
@@ -23,7 +23,7 @@ function [ W, W_rb ] = sample_W( W, Theta, thres, Eta, X, a, mu_0, var_0)
 W_rb = zeros(N);
 
 % Sampling each row of W in parallel
-parfor i = 1:N
+for i = 1:N
     W_i = W(i,:);
     W_i_rb = W_rb(i,:);
     rand_neuron_order = randperm(N);
@@ -34,10 +34,10 @@ parfor i = 1:N
         W_temp = W_i;
         W_temp(n) = w_mean;
         c = logistic_lik(Eta,X,W_temp,Theta(:,i),thres(i),i);
-        w_var_post = 1./(1./var_0 + 1./w_var);
-        w_mean_post = w_var_post*(w_mean/w_var+mu_0/var_0); 
-        temp = (w_mean_post.^2 - w_mean.^2)/(0.5*w_var) + (w_mean_post.^2 - mu_0.^2)/(0.5*var_0);
-        log_prob_1_prop = log(a)+c+temp+log(sqrt(w_var_post/var_0));
+        w_var_post = 1./(1./std_0 + 1./w_var);
+        w_mean_post = w_var_post*(w_mean/w_var+mu_0/std_0); 
+        temp = (w_mean_post.^2 - w_mean.^2)/(0.5*w_var) + (w_mean_post.^2 - mu_0.^2)/(0.5*std_0);
+        log_prob_1_prop = log(a)+c+temp+log(sqrt(w_var_post/std_0));
         W_temp = W_i;
         W_temp(n) = 0;
         temp = logistic_lik( Eta,X,W_temp,Theta(:,i),thres(i),i);

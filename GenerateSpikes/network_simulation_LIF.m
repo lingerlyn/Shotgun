@@ -1,0 +1,40 @@
+function s=network_simulation_LIF(A,b,T,T0,seed)
+% This function simulates a sign thresholded network with parameters
+% A - network connectivity (NxN)
+% b - minus the threshold (NxT)
+% T - simulation duration (scalar)
+% T0 - burn-in time (scalar) - time to wait so network activity becomes stationary
+% seed - random seed
+% and outputs 
+% s - network activity (NxT)
+
+sigma_noise=1;
+gamma=0.2;
+
+N=size(A,1);
+s=zeros(N,T);
+
+stream = RandStream('mt19937ar','Seed',seed);
+RandStream.setGlobalStream(stream);
+
+% T0=1e2; %time to wait so network activity becomes stationary
+s0=rand(N,1)<0.9;
+v=0;
+
+for tt=1:T0
+    Input=A*s0+sigma_noise*randn(N,1);
+    v=gamma*v+Input;
+    s0=(sign(v+b(:,1)))/2;
+    v(s0>0.5)=0; %reset
+end
+
+s(:,1)=s0;
+
+for tt=1:(T-1)
+        Input=A*s(:,tt)+sigma_noise*randn(N,1);
+        v=gamma*v+(1-gamma)*Input;
+        s(:,tt+1)=(sign(v+b(:,tt))+1)/2;
+        v(s(:,tt+1)>0.5)=0;     %reset    
+end
+
+end

@@ -1,4 +1,4 @@
-function spikes_out = GetSpikes(W,bias,T,T0,seed,type,N_stim,stim_type)
+function spikes_out = GetSpikes(W,bias,T,T0,seed,type,N_stim,stim_type,timescale)
 % This function simulates a network with parameters
 % W - network connectivity (NxN)
 % bias - bias (Nx1)
@@ -24,8 +24,14 @@ switch type
         spikes=network_simulation_Poisson(A,bias,T,T0,seed);
     case 'logistic'
         spikes=network_simulation_logistic(A,bias,T,T0,seed);
+    case 'logistic_with_history'
+        spikes=network_simulation_logistic_with_history(A,bias,T,T0,seed,timescale);
     case 'logistic_with_delays'
         spikes=network_simulation_logistic_with_delays(A,bias,T,T0,seed);
+    case 'LIF'
+        spikes=network_simulation_LIF(A,bias,T,T0,seed);
+    otherwise
+            error('unknown neuron type');
 end
 
 spikes_out=[spikes; stim];

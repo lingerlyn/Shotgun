@@ -97,14 +97,14 @@ title(['U. E[exp(U)]=' num2str(mean(exp(U(:))))]);
 subplot(3,3,6)
 L=1000;
 ll=1; %use only first filter????
-filtered_spikes=zeros(N,T);
+filtered_spikes(nn,:,ll)=zeros(N,T);
 for nn=1:N    
     a=filter_list{1,nn,ll}; %polynom of transfer function denomenator    
     b=filter_list{2,nn,ll}; %polynom of transfer function numerator
     filtered_spikes(nn,:)=filter(b,a,sampled_spikes(nn,:));
 end
 U_no_bias=W*filtered_spikes;
-[count,bins]=hist(U_no_bias(:),L);  colorbar
+[count,bins]=hist(U_no_bias(1,:),L);  colorbar
 % p0=exp(-spar*firing_rate*N); %probability for zero input
 % if p0>1 
 %     p0=1;
