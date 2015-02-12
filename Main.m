@@ -174,10 +174,11 @@ switch est_type
         rates=full(rates);
         
         W_now=W(N_unobs+1:end,N_unobs+1:end);
-        [EW,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,is_spikes,W_now);               
-        mask=~~EW;
-        [EW2,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
-        EW2=EW2.*mask;
+        [EW,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,is_spikes,W_now);     
+        EW2=EW;
+%         mask=~~EW;
+%         [EW2,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
+%         EW2=EW2.*mask;
 %         [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
 %         EW2=diag(amp)*EW2;
     case 'FullyObservedGLM'
