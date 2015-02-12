@@ -1,4 +1,4 @@
-function [ CXX_filtered, CXY_filtered,W,rates_filtered,obs_count] = GetStat2( sampled_spikes,observations,filter_list,glasso,restricted_penalty,pos_def,sparsity,true_W)
+function [ CXX_filtered, CXY_filtered,W,rates_filtered,obs_count,p_x] = GetStat2( sampled_spikes,observations,filter_list,glasso,restricted_penalty,pos_def,sparsity,true_W,bin_num)
 % inputs:
 % sampled_spikes -NxT observed spikes (with zeros in unobsereved samples)
 % observations - NxT matrix of which timebins were observed
@@ -8,6 +8,7 @@ function [ CXX_filtered, CXY_filtered,W,rates_filtered,obs_count] = GetStat2( sa
 % pos_def - restict Covariance matrix to be positive semi definite
 % sparsity-  the average nnz in the inv(CXX) matrix.  if empty, test using true matrix
 % true_W - for  testing purposes
+% bin_num - number of bins in marginal estimation
 
 % outputs:
 % Cxx_filtered  - NxNxL Array of estimated filtered spike covariance at a single timestep, one for each of the L filters
@@ -15,7 +16,7 @@ function [ CXX_filtered, CXY_filtered,W,rates_filtered,obs_count] = GetStat2( sa
 % W - infered weights matrix
 % rates_filtered - NxL mean firing rates, after filtering with each filter
 % obs_count - observation count for each neuron
-
+% p_x - marginal distribution of filtered spikes
 
 % internal parameters
 Tol=1e-6; %numerical tolerance for glasso
@@ -31,12 +32,18 @@ filter_square=zeros(N,N,L);
 filter_sum=zeros(N,L);
 delta_function_array=zeros(T,1); %does not have to be T  long - just longer then the filter
 delta_function_array(2)=1;
+p_x=zeros(N,bin_num,L);
+bins=linspace(0,1,bin_num); %we assumed the input are normalized between 0 and 1
 
 for ll=1:L
     for nn=1:N
         a=filter_list{1,nn,ll}; %polynom of transfer function denomenator    
         b=filter_list{2,nn,ll}; %polynom of transfer function numerator
-        filtered_spikes(nn,:,ll)=filter(b,a,sampled_spikes(nn,:));
+        filtered_spikes(nn,:,ll)=filter(b,a,sampled_spikes(nn,:)); %filter spikes
+        %get marginals
+        p_x(nn,:,ll)=hist(filtered_spikes(nn,observations(nn,:)>0.5,ll),bins);
+        p_x(nn,:,ll)=p_x(nn,:,ll)./sum(p_x(nn,:,ll));
+        %
         temp1=filter(b,a,delta_function_array);                
         filter_sum(nn,ll)=sum(temp1);
         for kk=1:N                
@@ -49,7 +56,7 @@ for ll=1:L
 end
 
 mYn=sum(observations,2);
-mY=sum(sampled_spikes,2);
+mY=full(sum(sampled_spikes,2));
 rates=mY./(mYn+eps); %estimate the mean firing rates
 rates_filtered=zeros(N,L);
 for ll=1:L
@@ -64,36 +71,15 @@ CXY_filtered=zeros(N,N,L);
 %initialize the sufficient statistics arrays
 observations=double(observations);
 if N*T<thresh
-        XX=sampled_spikes*sampled_spikes'/T;
+        XX=full(sampled_spikes*sampled_spikes'/T);
         XXn=observations*observations'/T;
         XYn=observations(:,1:(end-1))*(observations(:,2:end))'/T; %or mYn*mYn'/T
     for ll=1:L
-        XX_filtered(:,:,ll)=filtered_spikes(:,:,ll)*filtered_spikes(:,:,ll)'/T;
-        XY_filtered(:,:,ll)=filtered_spikes(:,1:(end-1),ll)*(sampled_spikes(:,2:end))'/T;        
+        XX_filtered(:,:,ll)=full(filtered_spikes(:,:,ll)*filtered_spikes(:,:,ll)')/T;
+        XY_filtered(:,:,ll)=full(filtered_spikes(:,1:(end-1),ll)*(sampled_spikes(:,2:end))')/T;        
     end
 else %haven't written this part yet - after writing this, change thresh to 1e8
-    XX=zeros(N);
-    XXn=zeros(N);
-    XY=zeros(N);
-    XYn=zeros(N);
-    g = find(observations(:,1));
-    sg = double(sampled_spikes(g,1));
-    disp(['Gathering sufficient statistics...'])
-    for tt = 2:T
-        f = g;
-        sf = sg;
-        g = find(observations(:,tt));
-        sg = double(sampled_spikes(g,tt));
-
-        XX(f,f)=XX(f,f)+sf*sf';
-        XXn(f,f)=XXn(f,f)+1;
-
-        XY(f,g)=XY(f,g)+sf*sg';
-        XYn(f,g)=XYn(f,g)+1;
-        if ~mod(tt,T/10)
-            disp([num2str(100*tt/T,2) '%'])
-        end
-    end
+   error('havent written this part yet')
 end
 
 

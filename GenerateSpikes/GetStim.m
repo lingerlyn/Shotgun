@@ -42,7 +42,7 @@ switch stim_type
             stim(:,tt)=(pulse_mag+pulse_std*randn).*state;
         end
      case 'sine'
-        T_pulse=1e4;
+        T_pulse=1e1;
         pulse_mag=0.5;
         pulse_std=0.5;
         

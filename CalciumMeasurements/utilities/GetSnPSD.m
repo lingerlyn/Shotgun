@@ -1,12 +1,12 @@
-function [ sn, thr ] = GetSn(Y)
-%GETSN Summary of this function goes here
+function [ sn, thr ] = GetSnPSD(Y)
+%GETSNPSD Summary of this function goes here
 % input:
 % Y - calcium trace
 % output:
 % Sn - noise standard deviation in trace
 % thr - residual noise ( = norm( noise trace) )
-L=length(Y);
-[psd_Y,ff]=pwelch(Y,round(L/8),[],1000,1);
+L=length(Y-mean(Y));
+[psd_Y,ff]=pwelch(Y,round(L/8),[],2000,1);
 % semilogy(ff,psd_Y);
 % xlim([min(ff) max(ff)])
 

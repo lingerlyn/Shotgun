@@ -1,18 +1,71 @@
-function c=SetBiases(A,target_rates)
+function Eb=SetBiases(W,target_rates,spike_gen)
 % Estimate the biases needed for each neuron to fire at its target rate.
 
-N=length(A);
+eta=1; % learning rate
+T=1e3; % sample simulation time
+rates_tol =0.1;
+max_iteration=300;
+inhib_target_rates=1.5*target_rates;
+thresh=0.2; %maximal firing rate 20Hz (?)
 
-zN=sparse(N,N);
-W=[zN .5*A zN; .5*A' zN .5*A; zN .5*A' zN];
-W0=W(N+1:end,N+1:end);
-WT=W(1:2*N,1:2*N);
+% obtain modify target rates according to neuronal type - inhibitory neurons fire (twice?) more
+W_temp=W;
+N=size(W,1);
+W_temp(eye(N)>0.5)=0;
+ind_excitatory=(sum(W_temp,1)>=0)';
+ind_inhibitory=(sum(W_temp,1)<0)';
+target_rates_with_types=target_rates.*ind_excitatory+inhib_target_rates.*ind_inhibitory;
 
-%some index vectors
-nn=(1:N)'; nn2=((N+1):(2*N))'; nn3=((2*N+1):(3*N))';
-c=zeros(N,1);
-for k=1:N %set the offset term c to produce the desired firing rate
-    ind_k=[1:k-1 k+1:N]';
-    logit_k=log(target_rates(k)/(1-target_rates(k)));
-    c(k)=(logit_k-2*(W(N+k,[nn;N+ind_k;nn3])*[target_rates;target_rates(ind_k);target_rates]));
-end;
+noise_dist='normal';
+switch noise_dist
+    case 'normal' % randomize rates according to a normal distriubtion
+%          target_rates_with_types=abs(target_rates_with_types+sqrt(target_rates_with_types/10)*randn);
+
+    case 'lognormal'% randomize rates according to a lognormal distriubtion (Figure 3 in "The log-dynamic brain: how skewed distributions affect network operations")
+        m=target_rates_with_types;
+        v=m;            
+        mu=log(m.^2+(m.^2+v));
+        si=sqrt(log(1+v./m.^2));      
+        ind=ones(N,1)>0.5;
+        while any(ind)                    
+            target_rates_with_types(ind)=exp(mu(ind)+randn(sum(ind),1).*si(ind));
+            ind=target_rates_with_types(:)>thresh;
+        end
+end 
+
+[~,T0,~,~,seed_spikes,~,N_stim,stim_type, neuron_type,timescale,~]=v2struct(spike_gen);
+
+logit_target_rates=log(target_rates_with_types./(1-target_rates_with_types));
+mean_U=W*target_rates_with_types;    
+Cxx=diag(target_rates_with_types.*(1-target_rates_with_types)); %we approximate initialy that the spikes are weakly correlated
+var_U=diag(W*Cxx*W');   
+Eb=sqrt(1+pi*var_U/8).*logit_target_rates-mean_U;
+rates_diff=inf;
+iteration=1;
+
+verbos=0;
+s0=[];
+
+while rates_diff>rates_tol 
+    iteration=iteration+1;
+    spikes=GetSpikes(W,Eb,T,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbos);
+    rates=mean(spikes,2);
+%     Eb=Eb-(eta/iteration)*(rates-target_rates_with_types);      
+    Eb=Eb-eta*(rates-target_rates_with_types);  
+    rates_diff=mean(abs(rates-target_rates_with_types))/mean(rates);
+
+    excitatory_rate=mean(mean(spikes(ind_excitatory,:)))
+    inhibitory_rate=mean(mean(spikes(ind_inhibitory,:)))
+    
+    if iteration>max_iteration
+        warning('max iteration reached');
+        return
+    end
+end
+
+end
+
+function y=sigmoid(x)
+    y=1./(1+exp(-x));
+end
+

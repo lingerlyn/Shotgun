@@ -1,4 +1,4 @@
-function [EW, Eb]=EstimateA_L1_logistic_sampling(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm,is_spikes)
+function [EW, Eb]=EstimateA_L1_logistic_cavity_sampling(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm,is_spikes,p_x)
 % Following derivation in GLM_GradUsingSampling 13.1.2015.lyx
 
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
@@ -11,23 +11,26 @@ function [EW, Eb]=EstimateA_L1_logistic_sampling(CXX,CXY,rates,sparsity,N_stim,p
 % pen_dial - 1 if we want to penalize diagonal entries; 0 otherwise
 % warm - 1 if we want to do warm starts within FISTA; 0 otherwise
 % is_spikes - if equal 1 we use a cavity-style averages
+% p_x - filtered spike marginals (only relevant for timescale>1)
+
 % OUTPUTS:
 % EW: MAP estimate of weights
 % Eb: MAP estimate of weights
 
 %params
-Tol_sparse=0.01; %tolerance for sparsity level
+Tol_sparse=0.1; %tolerance for sparsity level
 N=length(rates);
-Tol_FISTA=1/N^2; %toleratnce for fista
+Tol_FISTA=1e-3; %toleratnce for fista
 samples_num=1e3;
 max_iterations=1e3;
 
 %initialize FISTA
-x=0*CXY';
+% x=0*CXY';
+x=CXY'/CXX;
 y=x;
 Eb=0;
 z=0;
-L=20*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
+L=2*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
 
 
 %initialize binary search
@@ -73,21 +76,32 @@ while FISTA_cond
     samples=randn(N,samples_num);
     spikes=bsxfun(@plus,rates,chol(CXX)*samples);
     Ef=mean(1./(1+exp(-bsxfun(@plus,y*spikes,z))),2);
-    if is_spikes==1
+    
+    if is_spikes==1    
         for nn=1:N        
             rates_cavity=rates+CXX(:,nn)*(1-rates(nn))/CXX(nn,nn);        
             CXX_cavity=CXX-CXX(:,nn)*CXX(nn,:)/CXX(nn,nn);
             ind=1:N;
             ind(nn)=[];
             spikes(ind,:)=bsxfun(@plus,rates_cavity(ind),chol(CXX_cavity(ind,ind))*samples(ind,:));
-            spikes(nn,:)=1;
-            Ef_cavity(:,nn)=mean(1./(1+exp(-bsxfun(@plus,y*spikes,z))),2);
-            u=y-(2/L)*( Ef_cavity*diag(rates)-MYX);
+            spikes(nn,:)=1;                    
+            Ef_cavity(:,nn)=mean(1./(1+exp(-bsxfun(@plus,y*spikes,z))),2)*rates(nn);                 
         end
+            u=y-(2/L)*( Ef_cavity-MYX);
     else
-        Efspikes=(1./(1+exp(-bsxfun(@plus,y*spikes,z))))*spikes'/size(spikes,2);
-        u=y-(2/L)*(Efspikes-MYX);
-    end    
+        marginal_samples = SampleDist(p_x,samples_num);
+        for nn=1:N        
+            rates_cavity=bsxfun(@plus,rates,CXX(:,nn)*(marginal_samples(nn,:)-rates(nn))/CXX(nn,nn));        
+            CXX_cavity=CXX-CXX(:,nn)*CXX(nn,:)/CXX(nn,nn);
+            ind=1:N;
+            ind(nn)=[];
+            spikes(ind,:)=rates_cavity(ind,:)+chol(CXX_cavity(ind,ind))*samples(ind,:);
+            spikes(nn,:)=marginal_samples(nn,:);                    
+            Ef_cavity(:,nn)=mean(bsxfun(@times,marginal_samples(nn,:),1./(1+exp(-bsxfun(@plus,y*spikes,z)))),2);                 
+        end            
+            u=y-(2/L)*( Ef_cavity-MYX);
+        end       
+     
     Eb=z-(2/L)*(Ef-rates);
       
     x=ThresholdOperator(u,mask.*lambda/L);

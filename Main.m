@@ -2,27 +2,34 @@ clear all
 close all
 clc
 
+% sample_ratio_array=[1 0.2 0.1];
+
+% for kk=1:length(sample_ratio_array)
 %% Set params - later write a function for several default values
 addpath('Misc')
 addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
+addpath('GenerateSpikes');
 
 params=SetParams;
+% params.spike_gen.sample_ratio=sample_ratio_array(kk);
 
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
-[N,spar,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates]=v2struct(params.connectivity);
+[N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs]=v2struct(params.connectivity);
 
 tic
-W=GetWeights(N,conn_type,spar,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
+W=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
 RunningTime.GetWeights=toc;
 
-if ~isempty(target_rates)
-    bias=SetBiases(W,target_rates*ones(N,1));
-end
+    if ~isempty(target_rates)
+        bias=SetBiases(W,target_rates,params.spike_gen);
+    end
+
 
 if isempty(params.stat_flags.est_spar)
     params.stat_flags.est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
+    params.conn_est_flags.est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
 end
 
 %sorted W
@@ -35,53 +42,88 @@ end
 
 %% Generate Spikes
 addpath('GenerateSpikes');
-[T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale]=v2struct(params.spike_gen);
+[T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration]=v2struct(params.spike_gen);
 
-tic
-spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale);
-RunningTime.GetSpikes=toc;
-tic
-observations=SampleSpikes(N,T,sample_ratio,sample_type,N_stim,seed_sample+1);
-sampled_spikes=observations.*spikes;
-RunningTime.SampleSpikes=toc;
+memory_threshold=1e10;  %maximial size of array to allow
+splits=ceil((T*N^2)/memory_threshold)
+mY=0; mYn=0;
+XX=0; XXn=0;
+XY=0; XYn=0;
+t_start=0;
 
-% spikes=sparse(GetSpikes(W,bias,T,T0,seed_spikes,neuron_type));
-% observations=sparse(SampleSpikes(N,T,sample_ratio,sample_type,seed_sample+1));
-% sampled_spikes=sparse(observations.*spikes);
-%% Handle case of fixed observed subset
-if strcmp(sample_type,'fixed_subset')||strcmp(sample_type,'random_fixed_subset')
-    ind=any(observations,2);        
-    W=W(ind,ind);    
-    spikes=spikes(ind,1:end);
-    sampled_spikes=sampled_spikes(ind,1:end);
-    observations=observations(ind,1:end);
-    ind(end+1-N_stim:end)=[];
-    N=sum(ind);% note change in N!!!
-    bias=bias(ind);
-    params.stat_flags.est_spar=nnz(W(1:N,1:N))/N^2; %correct sparsity estimation. Cheating????
-end
-
-%% Estimate sufficeint statistics
-addpath('EstimateStatistics')
-[glasso,pos_def,restricted_penalty,est_spar]=v2struct(params.stat_flags);
-
-tic
-if timescale==1
- [Cxx, Cxy,~,rates,obs_count] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
-else 
-    filter_list=cell(2,N);
-    gamma=1/timescale;
-    for nn=1:N
-        filter_list{1,nn}=[1 -(1-gamma)];
-        filter_list{2,nn}=gamma;
+for iter=1:splits
+    if iter<splits
+        T_split=floor(T/splits);
+    else
+        T_split=T-(splits-1)*floor(T/splits);
     end
-    [Cxx, Cxy,~,rates,obs_count] = GetStat2(sampled_spikes,observations,filter_list,glasso,restricted_penalty,pos_def,est_spar,W);
+    
+    tic
+    verbose=1;
+    
+    if iter==1
+        s0=[];
+    else
+        s0=full(spikes(:,end));
+    end
+    
+    spikes=GetSpikes(W,bias,T_split,T0,seed_spikes+iter,neuron_type,N_stim,stim_type,timescale,s0,verbose);
+    RunningTime.GetSpikes=toc;
+    tic
+    observations=SampleSpikes(N,T_split,sample_ratio,sample_type,obs_duration,N_stim,seed_sample+iter,t_start);
+    t_start=t_start+T_split;
+    sampled_spikes=sparse(observations.*spikes);
+    RunningTime.SampleSpikes=toc;
+
+    %% Estimate sufficeint statistics
+%     addpath('EstimateStatistics')
+%     [glasso,pos_def,restricted_penalty,est_spar,bin_num]=v2struct(params.stat_flags);
+% 
+%     tic
+%     if timescale==1
+%      [Cxx_split, Cxy_split,~,rates_split,obs_count_split] = GetStat(sampled_spikes,observations,glasso,restricted_penalty,pos_def,est_spar,W);
+%          filter_list=cell(2,N);
+%         for nn=1:N
+%             filter_list{1,nn}=1;
+%             filter_list{2,nn}=1;
+%         end
+%         p_x_split=0;
+%     else 
+%         filter_list=cell(2,N);
+%         gamma=1/timescale;
+%         for nn=1:N
+%             filter_list{1,nn}=[1 -(1-gamma)];
+%             filter_list{2,nn}=gamma;
+%         end
+%         [Cxx_split, Cxy_split,~,rates_split,obs_count_split,p_x_split] = GetStat2(sampled_spikes,observations,filter_list,glasso,restricted_penalty,pos_def,est_spar,W,bin_num);
+%     end
+%     RunningTime.GetStat=toc;
+%     % Ebias=GetBias( EW,Cxx,rates);
+        
+        sampled_spikes_obs=sampled_spikes(N_unobs+1:end,:);
+        observations_obs=observations(N_unobs+1:end,:);
+        mY=mY+full(sum(sampled_spikes_obs,2));
+        mYn=mYn+full(sum(observations_obs,2));
+        XX=XX+sampled_spikes_obs*sampled_spikes_obs';
+        XXn=XXn+observations_obs*observations_obs';
+        XY=XY+sampled_spikes_obs(:,1:(end-1))*(sampled_spikes_obs(:,2:end))';
+        XYn=XYn+observations_obs(:,1:(end-1))*(observations_obs(:,2:end))';
+        
+        imagesc(XYn);
+        pause(1e-6);
+    
 end
-RunningTime.GetStat=toc;
-% Ebias=GetBias( EW,Cxx,rates);
+
+rates=mY./(mYn+eps); %estimate the mean firing rates
+Cxx=full(XX./(XXn+eps))-rates*rates'; %estimate the covariance (not including stim terms for now)
+Cxy=full(XY./(XYn+eps))-rates*rates'; %estimate cross-covariance
+
+addpath('EstimateStatistics')
+ [Cxx,Cxy ] = PosProj( Cxx,Cxy );
+
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
-[pen_diag,warm,est_type]=v2struct(params.conn_est_flags);
+[pen_diag,warm,est_type,est_spar]=v2struct(params.conn_est_flags);
 
 tic
 
@@ -90,19 +132,22 @@ EW3=Cxy'/Cxx;
 if strncmpi(neuron_type,'logistic',8)
     [amp, Ebias2]=logistic_ELL(rates,EW3,Cxx,Cxy);    
 else
-    amp=eye(N);
+    amp=eye(size(EW3,1));
 end
 EW3=diag(amp)*EW3;
+EW2=EW3;
+EW=EW3;
 
+N_obs=N-N_unobs;
 switch est_type
     case 'Gibbs'
-        p_0=est_spar*ones(N);
+        p_0=est_spar*ones(N_obs);
         if ~pen_diag
-            p_0(eye(N)>0.5)=1;
+            p_0(eye(N_obs)>0.5)=1;
         end
 %         mu_0=-eye(N);
-        mu_0=zeros(N);
-        std_0=std(W(~~W(~eye(N))))*ones(N);
+        mu_0=zeros(N_obs);
+        std_0=std(W(~~W(~eye(N_obs))))*ones(N_obs);
         EW = EstimateA_Gibbs( bias,spikes,observations,p_0, mu_0, std_0);
         Ebias=GetBias( EW,Cxx,rates);
         if strncmpi(neuron_type,'logistic',8)
@@ -114,15 +159,27 @@ switch est_type
         EW2=diag(amp)*EW;
     case 'ELL'
         EW=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);              
-        Ebias=zeros(N,1);
+        Ebias=zeros(N_obs,1);
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
-        EW=diag(amp)*EW;
+        EW2=diag(amp)*EW;
+    case 'Cavity'
         if timescale==1
             is_spikes=1;
         else
             is_spikes=0;
         end
-        EW2=EstimateA_L1_logistic_sampling(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,is_spikes);       
+
+        Cxx=full(Cxx);
+        Cxy=full(Cxy);
+        rates=full(rates);
+        
+        W_now=W(N_unobs+1:end,N_unobs+1:end);
+        [EW,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,is_spikes,W_now);               
+        mask=~~EW;
+        [EW2,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
+        EW2=EW2.*mask;
+%         [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
+%         EW2=diag(amp)*EW2;
     case 'FullyObservedGLM'
 %         temp=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);      
 %         [amp, Ebias2]=logistic_ELL(rates,temp,Cxx,Cxy);
@@ -211,7 +268,9 @@ if CheckMore
 end
 
 
-%% Remove stimulus parts
+%% Save Results
+
+% Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
     EW=EW(1:N,1:N);
@@ -221,11 +280,20 @@ if N_stim>0
     Ebias2=Ebias2(1:N);
     spikes=spikes(1:N,:);
 end
-%% Save Results
+% Remove unobvserved parts
+W_full=W;
+bias_full=bias;
+W=W(N_unobs+1:end,N_unobs+1:end);
+bias=bias(N_unobs+1:end);
+spikes=spikes(N_unobs+1:end,:);
 
+params.connectivity.N=N-N_unobs;
 params.RunningTime=RunningTime;
+
 file_name=GetName(params);  %need to make this a meaningful name
-% save(file_name,'W','bias','EW','EW2','V','Cxx','Cxy','rates','Ebias','Ebias2','params');
+save(file_name,'W_full','bias_full','W','bias','EW','EW2','Cxx','Cxy','rates','params'); %,'Ebias','Ebias2'?
+
+
 % end
 %% Plot
 Plotter

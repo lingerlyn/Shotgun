@@ -28,6 +28,8 @@ if strcmp(params.conn_est_flags.est_type,'Gibbs')
     est_type_str=['_Gibbs'];
 elseif strcmp(params.conn_est_flags.est_type,'FullyObservedGLM')   
     est_type_str=['_FullyObservedGLM'];
+elseif strcmp(params.conn_est_flags.est_type,'Cavity')   
+    est_type_str=['_Cavity'];
 else
     est_type_str=[];
 end

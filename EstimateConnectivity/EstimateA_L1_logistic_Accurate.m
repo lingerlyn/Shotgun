@@ -17,7 +17,7 @@ function EW=EstimateA_L1_logistic_Accurate(CXX,CXY,rates,sparsity,N_stim,pen_dia
 % tic
 
 N=length(rates);
-Tol_sparse=0.01; %tolerance for sparsity level
+Tol_sparse=0.1; %tolerance for sparsity level
 Tol_FISTA=1/N^2; %toleratnce for fista
 max_iterations=1000;
 
@@ -39,8 +39,8 @@ V(isnan(V))=0; %take care of 0*log(0) cases...
 L=2*max(V(:))*max(eig(CXX)); %lipshitz constant
 
 %initialize binary search
-lambda_high=max(1e8,1e2*L); %maximum bound for lambda
-lambda_low=min(1e-8,1e-2*L);  %minimum bound for lambda
+lambda_high=max(1e-2,1e-2*L); %maximum bound for lambda
+lambda_low=min(1e-5,1e-5*L);  %minimum bound for lambda
 loop_cond=1;  %flag for while llop
 
 while  loop_cond %binary search for lambda that give correct sparsity level
@@ -75,7 +75,9 @@ while FISTA_cond
       
     x=ThresholdOperator(u,mask.*lambda/L);
     if any(~isfinite(u(:)))
-        error('non finite x!')
+        warning('non finite x!')
+        EW=x
+        return
     end
     t_next=(1+sqrt(1+4*t^2))/2;
     y=x+((t-1)/t_next)*(x-x_prev);   
@@ -96,6 +98,12 @@ end
     loop_cond=(abs(sparsity_measure-sparsity)/sparsity >  Tol_sparse);
     if sparsity==1
         loop_cond=0;
+    end
+    
+    if loop_cond&&((lambda_high-lambda_low)/lambda_high<1e-3)
+        warning('sparsity failed to converge!');
+        EW=x;
+        return
     end
 
     if cond

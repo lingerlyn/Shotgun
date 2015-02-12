@@ -3,7 +3,7 @@ function [ CXX, CXY,W,rates,obs_count] = GetStat(sampled_spikes,observations,gla
 % sampled_spikes -NxT observed spikes (with zeros in unobsereved samples)
 % observations - NxT matrix of which timebins were observed
 % glasso - flag that indicate whether or not use glasso
-% restricted_penalty - flag that indicates whether or not to use a restricted l1 penality in lasso (only on parts of the inv_COV matrix)
+% restricted_penalty - flag that indicates whether or not to use a restricted l1 penality in glasso (only on parts of the inv_COV matrix)
 % pos_def - restict Covariance matrix to be positive semi definite
 % sparsity-  the average nnz in the inv(CXX) matrix.  if empty, test using true matrix
 % true_W - for  testing purposes
@@ -21,7 +21,7 @@ Tol=1e-6; %numerical tolerance for glasso
 msg=1; %verbosity of glasso algorithm
 maxIter=100;  %glasso max iterations
 Tol_sparse=1e-2; % tolerance for sparsity of W
-thresh=1e8; %max size of spikes array for which we use effiecient computation of sufficient statistics
+thresh=inf; %max size of spikes array for which we use effiecient computation of sufficient statistics
 
 [N, T] = size(sampled_spikes);
 
@@ -58,15 +58,15 @@ else
     end
 end
 
-mY=sum(sampled_spikes,2);
+mY=full(sum(sampled_spikes,2));
 mYn=sum(observations,2);
 
 %% Calculate sufficient stats
 
 rates=mY./(mYn+eps); %estimate the mean firing rates
-CXX=XX./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
+CXX=full(XX)./(XXn+eps)-rates*rates'; %estimate the covariance (not including stim terms for now)
 % CXX((XXn<10))=0;%set elements to zero that haven't been observed sufficiently
-CXY=XY./(XYn+eps)-rates*rates'; %estimate cross-covariance
+CXY=full(XY)./(XYn+eps)-rates*rates'; %estimate cross-covariance
 % CXY((XYn<10))=0;
 COV = [CXX CXY; CXY' CXX];
 
