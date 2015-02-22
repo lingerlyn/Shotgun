@@ -84,7 +84,7 @@ for a=1:N
         Bas=diag(Cxx(S,S))./Fas.*(1-m(S))*finv(m(a));
         Cas=diag(Cxx(S,S)).^2./Fas.*((finv(m(a)))^2-(finv( (Cxy(S,a)+m(a)*m(S))./m(S))).^2);
         Das=-Bas+sqrt(Bas.^2-Cas);
-        Aas=Das./sqrt(1-pi/8*Das'*(Cxx(S,S)\Das));
+        Aas=Das./sqrt(1-pi/8*Das*(Cxx(S,S)\Das'));
 
         if any(~isreal(Aas)); keyboard; end
             

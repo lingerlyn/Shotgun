@@ -25,8 +25,8 @@ Tol_FISTA=1e-10; %toleratnce for fista
 max_iterations=300;
 last_max_iterations=20*max_iterations;
 use_sampling=0; %use sampling to calculate Gaussian integral. Typically slower, so don't use
-show_progress=1; %show figures with progress
-show_w=1; %#ok show figures with W (estimate vs true) 
+show_progress=0; %show figures with progress
+show_w=0; %#ok show figures with W (estimate vs true) 
 reweighted_L1_Reps=1;
 reweighted_L1_eps=1e-3;
 

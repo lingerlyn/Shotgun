@@ -175,7 +175,7 @@ switch est_type
         
         W_now=W(N_unobs+1:end,N_unobs+1:end);
         [EW,Ebias2,quality]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_now,centers);     
-        EW2=EW;
+        EW2=EstimateA_MLE_cavity(Cxx,Cxy,rates);
 %         mask=~~EW;
 %         [EW2,Ebias2,RMSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
 %         EW2=EW2.*mask;
