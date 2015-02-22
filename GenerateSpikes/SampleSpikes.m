@@ -26,7 +26,7 @@ end
     switch sample_type
         case 'spatially_random'
             for tt=1:T
-                if ~mod(t_start+tt-1,obs_duration)
+                if ~mod(tt-1,obs_duration)
                     temp=randperm(N);
                 end
                 ind(temp(1:round(N*unsampled_ratio)),tt)=1>0; %this randomization insures a at least sample_ratio observed at each time

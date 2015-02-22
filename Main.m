@@ -1,10 +1,9 @@
 clear all
-close all
+% close all
 clc
 
-% sample_ratio_array=[1 0.2 0.1];
-
-% for kk=1:length(sample_ratio_array)
+sample_ratio_array=[1];
+for kk=1:length(sample_ratio_array)
 %% Set params - later write a function for several default values
 addpath('Misc')
 addpath('EstimateConnectivity')
@@ -19,7 +18,8 @@ addpath('GenerateConnectivity')
 [N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs]=v2struct(params.connectivity);
 
 tic
-W=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
+[W,centers]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
+centers=centers(N_unobs+1:end,:); % remove unobserved part
 RunningTime.GetWeights=toc;
 
     if ~isempty(target_rates)
@@ -58,7 +58,7 @@ for iter=1:splits
         T_split=T-(splits-1)*floor(T/splits);
     end
     
-    tic
+    
     verbose=1;
     
     if iter==1
@@ -66,7 +66,7 @@ for iter=1:splits
     else
         s0=full(spikes(:,end));
     end
-    
+    tic
     spikes=GetSpikes(W,bias,T_split,T0,seed_spikes+iter,neuron_type,N_stim,stim_type,timescale,s0,verbose);
     RunningTime.GetSpikes=toc;
     tic
@@ -123,7 +123,7 @@ addpath('EstimateStatistics')
 
 %% Estimate Connectivity
 addpath('EstimateConnectivity');
-[pen_diag,warm,est_type,est_spar]=v2struct(params.conn_est_flags);
+[pen_diag,pen_dist,warm,est_type,est_spar]=v2struct(params.conn_est_flags);
 
 tic
 
@@ -163,21 +163,21 @@ switch est_type
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW2=diag(amp)*EW;
     case 'Cavity'
-        if timescale==1
+%         if timescale==1
             is_spikes=1;
-        else
-            is_spikes=0;
-        end
+%         else
+%             is_spikes=0;
+%         end
 
         Cxx=full(Cxx);
         Cxy=full(Cxy);
         rates=full(rates);
         
         W_now=W(N_unobs+1:end,N_unobs+1:end);
-        [EW,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm,is_spikes,W_now);     
+        [EW,Ebias2,quality]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_now,centers);     
         EW2=EW;
 %         mask=~~EW;
-%         [EW2,Ebias2,MSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
+%         [EW2,Ebias2,RMSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
 %         EW2=EW2.*mask;
 %         [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
 %         EW2=diag(amp)*EW2;
@@ -270,7 +270,6 @@ end
 
 
 %% Save Results
-
 % Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
@@ -292,10 +291,10 @@ params.connectivity.N=N-N_unobs;
 params.RunningTime=RunningTime;
 
 file_name=GetName(params);  %need to make this a meaningful name
-save(file_name,'W_full','bias_full','W','bias','EW','EW2','Cxx','Cxy','rates','params'); %,'Ebias','Ebias2'?
+save(file_name,'W_full','bias_full','W','bias','centers','EW','EW2','quality','Cxx','Cxy','rates','params'); %,'Ebias','Ebias2'?
 
 
-% end
+end
 %% Plot
 Plotter
 

@@ -17,6 +17,7 @@ function P = GetParams(Y,order,noise_method,timescale_method,varargin)
 % P=cell(N,1);
 
 for nn=1:N
+    nn
     switch timescale_method        
         case 'arpfit'
             P{nn} = arpfit(Y(nn,:),order);

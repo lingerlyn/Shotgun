@@ -1,5 +1,6 @@
-function W = GetWeights( N,network_type,spar,inhib_frac,weight_dist,seed,scale,N_stim,stim_type,sbmparams)
+function [W,centers] = GetWeights( N,network_type,spar,inhib_frac,weight_dist,seed,scale,N_stim,stim_type,sbmparams)
 %GetWeights Summary of this function goes here
+% INPUT
 % N - number of neurons
 % network_type - what kind of connectivity to use (note each connectivity has additional parameters)
 % spar - sparsity level
@@ -9,11 +10,15 @@ function W = GetWeights( N,network_type,spar,inhib_frac,weight_dist,seed,scale,N
 % stim_type - stimulus type
 % inhib_frac - fraction of inhibitory neurons
 % weight_dist - type of weight distribution 
+% OUTPUT
+% W = N x N weight matrix
+% centers = position of all neurons
 
 if ~isempty(seed)
     stream = RandStream('mt19937ar','Seed',seed);
     RandStream.setGlobalStream(stream);
 end
+centers=[];
 
 switch network_type
     case 'combi'
@@ -22,7 +27,7 @@ switch network_type
     case 'prob'        
         A=construct_weights_probabilistic(N, spar,inhib_frac,weight_dist);
     case 'realistic'        
-        A=construct_weights_realistic(N,inhib_frac);
+        [A,centers]=construct_weights_realistic(N,inhib_frac);
     case 'balanced'   
         lr_conn = 0.1;
         A = construct_bal_weights(N,spar,lr_conn);      
