@@ -8,10 +8,10 @@ addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
 set(0,'DefaultAxesFontSize',10)
-subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.06], [0.06 0.05], [0.06 0.01]);
+subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.07], [0.06 0.1], [0.08 0.01]);
 T=2e6;
 T_view=3e2;
-N=1e3;
+N=50;
 dt=1e-2; %100 Hz imaging frame rate
 
 if N==50
@@ -41,7 +41,7 @@ x_ticks={'R','C','Z','S'};
 
 %% Plot Network statistics
 figure(1)
-load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(1)) '_T=' num2str(T) '_Cavity.mat'],'W','W_full','bias_full','EW','bias','rates','params');
+load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(2)) '_T=' num2str(T) '_Cavity.mat'],'W','W_full','bias_full','EW','bias','rates','params','centers');
 W_temp=W(ind_array,ind_array);
 mi=min(W_temp(:));
 ma=max(W_temp(:));

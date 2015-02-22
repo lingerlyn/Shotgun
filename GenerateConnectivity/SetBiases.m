@@ -1,9 +1,9 @@
-function Eb=SetBiases(W,target_rates,spike_gen)
+function Eb_out=SetBiases(W,target_rates,spike_gen)
 % Estimate the biases needed for each neuron to fire at its target rate.
 
 eta=1; % learning rate
 T=1e3; % sample simulation time
-rates_tol =0.1;
+rates_tol =0.15;
 max_iteration=300;
 inhib_target_rates=1.5*target_rates;
 thresh=0.2; %maximal firing rate 20Hz (?)
@@ -45,6 +45,7 @@ iteration=1;
 
 verbos=0;
 s0=[];
+Eb_out=0;
 
 while rates_diff>rates_tol 
     iteration=iteration+1;
@@ -52,7 +53,10 @@ while rates_diff>rates_tol
     rates=mean(spikes,2);
 %     Eb=Eb-(eta/iteration)*(rates-target_rates_with_types);      
     Eb=Eb-eta*(rates-target_rates_with_types);  
-    rates_diff=mean(abs(rates-target_rates_with_types))/mean(rates);
+    Eb_out=Eb_out*(1-1/iteration)+Eb/iteration;
+    spikes=GetSpikes(W,Eb_out,T,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbos);
+    rates_out=mean(spikes,2);
+    rates_diff=mean(abs(rates_out-target_rates_with_types))/mean(target_rates_with_types);
 
     excitatory_rate=mean(mean(spikes(ind_excitatory,:)))
     inhibitory_rate=mean(mean(spikes(ind_inhibitory,:)))
@@ -63,9 +67,5 @@ while rates_diff>rates_tol
     end
 end
 
-end
-
-function y=sigmoid(x)
-    y=1./(1+exp(-x));
 end
 

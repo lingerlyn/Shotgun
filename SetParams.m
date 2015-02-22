@@ -1,9 +1,9 @@
 function params=SetParams()
 
 %% Network parameters
-N=500; %number of neurons
+N=512; %number of neurons
 N_stim=0; %number of stimulation sources
-N_unobs=0.2*N; %number of neurons completely unobserved 
+N_unobs=round(0.2*N); %number of neurons completely unobserved 
 N=N_unobs+N;
 spar =0.1; %sparsity level; 
 bias=-3*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
@@ -17,10 +17,10 @@ weight_dist=weight_dist_types{1}; %
 connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);
 
 %% Spike Generation parameters
-T=2e6; %timesteps
+T=1e4; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=0.2; %fraction of observed neurons per time step
-neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson'};
+neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson','LIF'};
 neuron_type=neuron_type_set{2}; 
 sample_type_set={'continuous','spatially_random','prob','double_continuous'};
 sample_type=sample_type_set{4};
@@ -42,10 +42,11 @@ stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar,bin_num); %add mo
 
 %% Connectivity Estimation Flags
 pen_diag=0; %penalize diagonal entries in fista
+pen_dist=0; %penalize distance in fista
 warm=1; %use warm starts in fista
 est_type_set={'ELL','Cavity','Gibbs','FullyObservedGLM'};
 est_type=est_type_set{2};
-conn_est_flags=v2struct(pen_diag,warm,est_type,est_spar);
+conn_est_flags=v2struct(pen_diag,pen_dist,warm,est_type,est_spar);
 
 %% SBM parameters
 if strcmp(conn_type,'block')

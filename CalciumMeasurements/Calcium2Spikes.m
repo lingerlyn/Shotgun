@@ -42,6 +42,6 @@ for nn=1:N
     end
 
 %     spikes(nn,:)=spikes(nn,:)/mean(spikes(nn,~~spikes(nn,:))); %make maximum equl 1 so we  can interpet this as spikes
-    end
+end
 
 end

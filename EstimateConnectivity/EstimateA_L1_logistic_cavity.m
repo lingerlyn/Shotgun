@@ -1,4 +1,4 @@
-function [EW, Eb,MSE]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,warm,is_spikes,true_W)
+function [EW, Eb,quality]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,pen_dist,warm,true_W,centers)
 % Following derivation in GLM_GradUsingSampling 13.1.2015.lyx
 
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
@@ -9,24 +9,24 @@ function [EW, Eb,MSE]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim
 % sparsity - required sparsitiy level (percentage of non-zero enteries in EW)
 % N_stim - number of stimuli
 % pen_dial - 1 if we want to penalize diagonal entries; 0 otherwise
+% pen_dist - 1 if we should we adjust penalty according to distance; 0 otherwise
 % warm - 1 if we want to do warm starts within FISTA; 0 otherwise
-% is_spikes - if equal 1 we use a cavity-style averages
 % true_W - for calculating Error
-% use_sampling - 1 if we should we use sampling to calculate Gaussian Integral
+% centers - NxD with locations of neurons in D-dimensional space
 % OUTPUTS:
 % EW: MAP estimate of weights
 % Eb: MAP estimate of weights
-
+% true_RMSE: MSE from true W
 
 %internal params
 Tol_sparse=0.05; %tolerance for sparsity level
 N=length(rates);
-Tol_FISTA=1e-8; %toleratnce for fista
+Tol_FISTA=1e-10; %toleratnce for fista
 max_iterations=300;
-last_max_iterations=5*max_iterations;
-use_sampling=0; %use sampling to calculate Gaussian integral
-show_progress=0; %show figures with progress
-show_w=0; %#ok show figures with W (estimate vs true) 
+last_max_iterations=20*max_iterations;
+use_sampling=0; %use sampling to calculate Gaussian integral. Typically slower, so don't use
+show_progress=1; %show figures with progress
+show_w=1; %#ok show figures with W (estimate vs true) 
 reweighted_L1_Reps=1;
 reweighted_L1_eps=1e-3;
 
@@ -41,12 +41,18 @@ x=sparse(CXY'/CXX);
 y=x;
 Eb=0;
 z=0;
+quality=[]; %MSE from true W        
 
 
 if pen_diag
     mask0=ones(N);
 else  
     mask0=ones(N)-eye(N); % used to remove L1 penalty from diagonal
+end
+
+if pen_dist
+    p=GetDistProb(centers);
+    mask0=mask0./(p/max(p(:)));
 end
 
 for kk=1:reweighted_L1_Reps
@@ -87,24 +93,20 @@ for kk=1:reweighted_L1_Reps
 
     FISTA_cond=1;
     iteration=0;
-    MSE=[];
-
-     if is_spikes~=1
-            error('non-spike case is not written yet')
-    end    
+    MAE=[]; %relative mean absolute error of the current estimate, in comparsion to the previous estimate
 
     while FISTA_cond
         t=t_next;
         x_prev=x;
         Eb_prev=Eb;       
         mean_U=y*rates+z;
-        var_U=diag(y*CXX*y');    
+        var_U=diag(y*CXX*y');
         CXX_diag=CXX(eye(N)>0.5);
         mean_U_cavity=bsxfun(@plus,mean_U,y*(CXX*diag((1-rates)./CXX_diag)));
         var_U_cavity=bsxfun(@plus,var_U,-((y*CXX).^2)*diag(1./CXX_diag));
         var_U_cavity(var_U_cavity<0)=0; %correct for numerical errors;
 
-        if use_sampling
+        if use_sampling %slower, so I don't use it
             L_z=1e4;
             samples=randn(1,1,L_z);
             u=bsxfun(@plus,mean_U,bsxfun(@times,sqrt(var_U),samples));        
@@ -146,10 +148,10 @@ for kk=1:reweighted_L1_Reps
         end
 
         iteration=iteration+1;    
-        MSE(end+1)=mean(abs(x(:)-x_prev(:))); %#ok    
+        MAE(end+1)=mean(abs(x(:)-x_prev(:))); %#ok    
 
         if show_progress
-            disp(['MSE=' num2str(MSE(end))]);
+            disp(['MAE=' num2str(MAE(end))]);
             figure(1000)
 
             a=3; b=2;
@@ -162,8 +164,8 @@ for kk=1:reweighted_L1_Reps
                 imagesc(x,[mi ma])
             end
             subplot(a,b,3)
-            plot(MSE)
-            ylabel('MSE');
+            plot(MAE)
+            ylabel('MAE');
             xlabel('iteration');
             subplot(a,b,4)
             plot(spar_array)
@@ -185,8 +187,8 @@ for kk=1:reweighted_L1_Reps
             bar([lambda_low,lambda, lambda_high])
         end
 
-    %     if length(MSE)>20
-    %         if MSE(end-1)<MSE(end)
+    %     if length(MAE)>20
+    %         if MAE(end-1)<MAE(end)
     %             disp('Liphshitz constant doubled')
     %             L=2*L;
     %             lambda_high=lambda_high*2;
@@ -195,7 +197,7 @@ for kk=1:reweighted_L1_Reps
     %         end
     %     end
 
-        FISTA_cond=(MSE(end)>Tol_FISTA)||(iteration<30);
+        FISTA_cond=(MAE(end)>Tol_FISTA)||(iteration<30);
 
         temp=~~x(1:(end-N_stim),1:(end-N_stim));
         sparsity_measure=mean(temp(:));    
@@ -205,6 +207,9 @@ for kk=1:reweighted_L1_Reps
         if sparsity==1
             loop_cond=0;
         end
+
+        [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( true_W,x );
+        quality(end+1,:)=[R,correlation, zero_matching,sign_matching] ; %#ok    
 
         if loop_cond
             if (iteration>max_iterations);

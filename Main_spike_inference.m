@@ -3,11 +3,11 @@ close all
 clc
 
 addpath(genpath('CalciumMeasurements')); %adds folder with subfolders
-data_types={'Tolias','Tim','Sim'};
+data_types={'Tolias','Tim','Manolis','Sim'};
 data=data_types(3);
-order_arpfit=1;
-order_sysid=1;
-plot_stuff=0;
+order_arpfit=2;
+order_sysid=2;
+plot_stuff=1;
 
 if strcmp(data,'Sim')
 
@@ -48,7 +48,7 @@ g=[g ; zeros(order_sysid-1,1)];
 dt=1;
 end
 %% Use real data
-data_sets_num=7; %for Tim's data
+data_sets_num=1; %for Tim's data
 K=6; %=size(spike_est,3)
 CR_cell=cell(data_sets_num,K); 
 KL_cell=CR_cell;
@@ -65,6 +65,9 @@ if strcmp(data,'Tolias')
     dt=1/data.fps;
 elseif strcmp(data,'Tim')   
      [ Y,spikes,dt ] = GetTimData(pp); %ind in 1 to..?
+     tt=1:size(Y,2);
+ elseif strcmp(data,'Manolis')   
+     [ Y,~,dt ] = GetManolisData('New'); %ind in 1 to..?
      tt=1:size(Y,2);
 end
 

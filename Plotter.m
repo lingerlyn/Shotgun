@@ -134,3 +134,18 @@ end
 % var_U=var(U_no_bias,[],2);
 % kar_U=mean((bsxfun(@plus,U_no_bias,-mean(U_no_bias,2))).^4,2);
 % plot(kar_U,3*var_U.^2,'.',kar_U,kar_U,'-')
+
+%% Plot quality during convergence
+figure
+for kk=1:4
+    subplot(4,1,kk)
+    plot(quality(:,kk))
+end
+
+%% Plot quality as function of distance
+figure
+for kk=1:4
+    [ quality_d,d_bins] = GetQualityDistance( W,EW,centers );
+    subplot(4,1,kk)
+    plot(d_bins,quality_d(:,kk))
+end

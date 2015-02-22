@@ -12,7 +12,9 @@ function spikes_out = GetSpikes(W,bias,T,T0,seed,type,N_stim,stim_type,timescale
 
 G=W(1:(end-N_stim),(end-N_stim+1):end);
 stim=GetStim(N_stim,T,stim_type);
-bias=bsxfun(@plus,bias,G*stim);
+U_ext=G*stim;    
+    
+bias=bsxfun(@plus,bias,U_ext);
 A=W(1:(end-N_stim),1:(end-N_stim));
 
 switch type
@@ -31,7 +33,7 @@ switch type
     case 'logistic_with_delays'
         spikes=network_simulation_logistic_with_delays(A,bias,T,T0,seed);
     case 'LIF'
-        spikes=network_simulation_LIF(A,bias,T,T0,seed);
+        spikes=network_simulation_LIF(A,bias,T,T0,seed,timescale,s0,verbos);
     otherwise
             error('unknown neuron type');
 end
