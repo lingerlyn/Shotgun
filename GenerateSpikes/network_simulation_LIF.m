@@ -26,7 +26,7 @@ if isempty(s0)
     
 for tt=1:T0
     Input=A*s0+sigma_noise*randn(N,1);
-    v=gamma*v+Input;
+    v=v*(1-gamma)+gamma*Input;
     s0=(sign(v+b(:,1)))/2;
     v(s0>0.5)=0; %reset
 end
@@ -37,7 +37,7 @@ s(:,1)=s0;
 
 for tt=1:(T-1)
         Input=A*s(:,tt)+sigma_noise*randn(N,1);
-        v=gamma*v+(1-gamma)*Input;
+        v=v*(1-gamma)+gamma*Input;
         s(:,tt+1)=(sign(v+b(:,tt))+1)/2;
         v(s(:,tt+1)>0.5)=0;     %reset    
         

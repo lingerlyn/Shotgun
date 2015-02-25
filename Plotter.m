@@ -136,16 +136,16 @@ end
 % plot(kar_U,3*var_U.^2,'.',kar_U,kar_U,'-')
 
 %% Plot quality during convergence
-figure
-for kk=1:4
-    subplot(4,1,kk)
-    plot(quality(:,kk))
-end
-
+% figure
+% for kk=1:4
+%     subplot(4,1,kk)
+%     plot(quality(:,kk))
+% end
+% 
 %% Plot quality as function of distance
-figure
-for kk=1:4
-    [ quality_d,d_bins] = GetQualityDistance( W,EW,centers );
-    subplot(4,1,kk)
-    plot(d_bins,quality_d(:,kk))
-end
+% figure
+% for kk=1:4
+%     [ quality_d,d_bins] = GetQualityDistance( W,EW,centers );
+%     subplot(4,1,kk)
+%     plot(d_bins,quality_d(:,kk))
+% end

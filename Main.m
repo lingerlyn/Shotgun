@@ -2,16 +2,17 @@ clear all
 % close all
 clc
 
-sample_ratio_array=[1];
-for kk=1:length(sample_ratio_array)
-%% Set params - later write a function for several default values
 addpath('Misc')
 addpath('EstimateConnectivity')
 addpath('GenerateConnectivity')
 addpath('GenerateSpikes');
+addpath('CalciumMeasurements');
 
+sample_ratio_array=[1];
+for kk=1:length(sample_ratio_array)
+%% Set params - later write a function for several default values
 params=SetParams;
-% params.spike_gen.sample_ratio=sample_ratio_array(kk);
+params.spike_gen.sample_ratio=sample_ratio_array(kk);
 
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
@@ -42,7 +43,8 @@ end
 
 %% Generate Spikes
 addpath('GenerateSpikes');
-[T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration]=v2struct(params.spike_gen);
+addpath('CalciumMeasurements');
+[T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration,CalciumObs]=v2struct(params.spike_gen);
 
 memory_threshold=1e10;  %maximial size of array to allow
 splits=ceil((T*N^2)/memory_threshold)
@@ -70,6 +72,15 @@ for iter=1:splits
     spikes=GetSpikes(W,bias,T_split,T0,seed_spikes+iter,neuron_type,N_stim,stim_type,timescale,s0,verbose);
     RunningTime.GetSpikes=toc;
     tic
+    
+    if CalciumObs==1
+         true_spikes=spikes;
+        [ Y,spikes] = Spikes2Calcium2Spikes( true_spikes );
+    else
+        true_spikes=0*spikes;
+        Y=spikes*0;
+    end
+    
     observations=SampleSpikes(N,T_split,sample_ratio,sample_type,obs_duration,N_stim,seed_sample+iter,t_start);
     t_start=t_start+T_split;
     sampled_spikes=sparse(observations.*spikes);
@@ -132,7 +143,7 @@ EW3=Cxy'/Cxx;
 if strncmpi(neuron_type,'logistic',8)
     [amp, Ebias2]=logistic_ELL(rates,EW3,Cxx,Cxy);    
 else
-    amp=eye(size(EW3,1));
+    amp=ones(size(EW3,1),1);
 end
 EW3=diag(amp)*EW3;
 EW2=EW3;
@@ -175,7 +186,10 @@ switch est_type
         
         W_now=W(N_unobs+1:end,N_unobs+1:end);
         [EW,Ebias2,quality]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_now,centers);     
-        EW2=EstimateA_MLE_cavity(Cxx,Cxy,rates);
+         if strncmpi(neuron_type,'LIF',8)            
+            EW=bsxfun(@times,EW,(std(W(~~W(:))/std(EW(~~EW(:))))));            
+         end
+%         EW2=EstimateA_MLE_cavity(Cxx,Cxy,rates);        %MLE
 %         mask=~~EW;
 %         [EW2,Ebias2,RMSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
 %         EW2=EW2.*mask;
@@ -279,6 +293,7 @@ if N_stim>0
     Ebias=Ebias(1:N);
     Ebias2=Ebias2(1:N);
     spikes=spikes(1:N,:);
+    true_spikes=true_spikes(1:N,:);
 end
 % Remove unobvserved parts
 W_full=W;
@@ -286,6 +301,8 @@ bias_full=bias;
 W=W(N_unobs+1:end,N_unobs+1:end);
 bias=bias(N_unobs+1:end);
 spikes=spikes(N_unobs+1:end,:);
+true_spikes=true_spikes(N_unobs+1:end,:);
+Y=Y(N_unobs+1:end,:);
 
 params.connectivity.N=N-N_unobs;
 params.RunningTime=RunningTime;

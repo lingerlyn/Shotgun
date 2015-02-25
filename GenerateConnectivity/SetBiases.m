@@ -4,7 +4,7 @@ function Eb_out=SetBiases(W,target_rates,spike_gen)
 eta=1; % learning rate
 T=1e3; % sample simulation time
 rates_tol =0.15;
-max_iteration=300;
+max_iteration=2000;
 inhib_target_rates=1.5*target_rates;
 thresh=0.2; %maximal firing rate 20Hz (?)
 

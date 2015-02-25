@@ -13,6 +13,7 @@ T=2e6;
 T_view=3e2;
 N=50;
 dt=1e-2; %100 Hz imaging frame rate
+isLIF=1; %are we using LIF?
 
 if N==50
     observations_ratios= [1,0.2,0.1,0.04];
@@ -41,7 +42,12 @@ x_ticks={'R','C','Z','S'};
 
 %% Plot Network statistics
 figure(1)
-load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(2)) '_T=' num2str(T) '_Cavity.mat'],'W','W_full','bias_full','EW','bias','rates','params','centers');
+if isLIF==1
+    LIF_str='_LIF';
+else
+    LIF_str=[];
+end
+load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(2)) '_T=' num2str(T) LIF_str '_Cavity.mat'],'W','W_full','bias_full','EW','bias','rates','params','centers');
 W_temp=W(ind_array,ind_array);
 mi=min(W_temp(:));
 ma=max(W_temp(:));
@@ -64,25 +70,48 @@ plot(bins,hist_W)
 xlabel('W');
 ylabel('count');
 
-addpath('GenerateSpikes');
-subplot(L+1,K,[ 5 6 7])
-[T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration]=v2struct(params.spike_gen);
-s0=[];verbose=1;
-spikes=GetSpikes(W_full,bias_full,T_view,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbose);
- 
-tt=(1:T_view)*dt; nn=1:length(bias_full);
-imagesc(tt,nn,spikes)
-% line()
-colormap('gray')
-freezeColors
-xlabel('time [sec]');
-ylabel('neuron');
-line([-1 2*tt(end)],N*[1 1],'color','red')
+ii=0;
+ subplot(L+1,K,K*ii+[5 6])
+A_ind=linspace(mi2,ma2,100);
+plot(A_ind,A_ind,'r-');
+hold all
+W_temp=W(ind_array,:);
+plot(W_temp(:),W_temp(:),'b.','MarkerSize',dot_size)
+%     cloudPlot(W(:),EW(:),[mi ma mi ma],1,[30 30])
+axis([mi2 ma2 mi2 ma2])
+hold off
+%     legend('x=y','EW','EW2')
+xlabel('W','fontsize',fontsize2)
+ylabel('W','fontsize',fontsize2)
+
+subplot(L+1,K,K*ii+[3 4])
+mi3=-2;%min([W(:) ;EW(:)]);
+ma3=2;%max([W(:) ;EW(:)]);
+bins=linspace(mi3,ma3,L_bins);
+%     hist_W=hist(W(~~W(:)),bins);
+%     hist_EW=hist(EW(~~EW(:)),bins);
+hist_W=hist(W(:),bins);
+semilogy(bins,hist_W,'bo','linewidth',2);
+xlim([mi3 ma3]);
+xlabel('W','fontsize',fontsize2)
+ylabel('count','fontsize',fontsize2)
+%     if ii==1
+%         h=legend('W','$\hat{W}$')
+%         set(h,'Interpreter','latex','fontsize',fontsize,'location','northwest','orientation','horizontal')
+%     end
+
+subplot(L+1,K,K*ii+7)
+[R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,W );
+
+bar( [R,correlation, zero_matching,sign_matching] );    
+ylim([0 1])
+ylabel('quality','fontsize',fontsize)
+set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 
 %%
 for ii=1:L
-    load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '_Cavity.mat'],'W','EW','rates');
+    load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) LIF_str '_Cavity.mat'],'W','EW','rates');
         %     high_firing_rate=rates>0.05;
 %     W=W(high_firing_rate,high_firing_rate);
 %     EW=EW(high_firing_rate,high_firing_rate);
@@ -116,7 +145,7 @@ for ii=1:L
 %     hist_EW=hist(EW(~~EW(:)),bins);
     hist_W=hist(W(:),bins);
     hist_EW=hist(EW(:),bins);
-    semilogy(bins,hist_W,'b-',bins,hist_EW,'r.');
+    semilogy(bins,hist_W,'bo',bins,hist_EW,'r.','linewidth',2);
     xlim([mi3 ma3]);
     xlabel('W','fontsize',fontsize2)
     ylabel('count','fontsize',fontsize2)
@@ -136,5 +165,5 @@ for ii=1:L
 
 end
 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript'
-Export2Folder(['Sparsity_N=' num2str(N) '.pdf'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
+Export2Folder(['Sparsity' LIF_str '_N=' num2str(N) '.eps'],target_folder) 

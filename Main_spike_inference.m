@@ -4,9 +4,9 @@ clc
 
 addpath(genpath('CalciumMeasurements')); %adds folder with subfolders
 data_types={'Tolias','Tim','Manolis','Sim'};
-data=data_types(3);
-order_arpfit=2;
-order_sysid=2;
+data=data_types(4);
+order_arpfit=1;
+order_sysid=1;
 plot_stuff=1;
 
 if strcmp(data,'Sim')
@@ -38,7 +38,7 @@ RunningTime.GetSpikes=toc;
 
 tic
 sn=0.2;
-amp=0.3;
+amp=1;
 b=3; 
 g=0.95;
 noise_mode=0;
@@ -123,8 +123,8 @@ RunningTime.GetSpikes=toc;
 
 %% Plot estimated params
 if plot_stuff
-    % ind=1;
-    P_arpfit{ind}.g=[P_arpfit{ind}.g ; zeros(order_sysid-order_arpfit,1)];
+%     ind=1;
+%     P_arpfit{ind}.g=[P_arpfit{ind}.g ; zeros(order_sysid-order_arpfit,1)];
 
     sn_vect=[sn,P_arpfit{ind}.sn,P_psd{ind}.sn,P_sysid{ind}.sn,P_sysid_iterated{ind}.sn];
     g_vect=[g,P_arpfit{ind}.g,P_sysid{ind}.g,P_sysid_iterated{ind}.g]';
