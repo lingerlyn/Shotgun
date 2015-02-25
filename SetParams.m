@@ -1,13 +1,13 @@
 function params=SetParams()
 
 %% Network parameters
-N=100; %number of neurons
+N=10; %number of neurons
 N_stim=0; %number of stimulation sources
-N_unobs=round(0.2*N); %number of neurons completely unobserved 
+N_unobs=0*round(0.2*N); %number of neurons completely unobserved 
 N=N_unobs+N;
 spar =0.1; %sparsity level; 
 bias=-3*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
-target_rates=0.05; %set as empty if you want to add a specific bias.
+target_rates=0.01; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
 conn_type='realistic';
@@ -17,7 +17,7 @@ weight_dist=weight_dist_types{1}; %
 connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);
 
 %% Spike Generation parameters
-T=1e4; %timesteps
+T=2e4; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson','LIF'};
@@ -30,7 +30,8 @@ timescale=1; %timescale of filter in neuronal type 'logistic_with_history' - doe
 seed_spikes=1;
 seed_sample=1e6;
 obs_duration=100; %duration we observe each neurons
-spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration);
+CalciumObs=1; %use a calcium observation model
+spike_gen=v2struct(T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration,CalciumObs);
 
 %% Sufficeint Statistics Estimation flags
 glasso=0; %use glasso?
