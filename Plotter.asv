@@ -73,7 +73,7 @@ title({[' Eb corr =' num2str(correlation) ', Eb2 corr =' num2str(correlation2)];
 hold off
 end
 %% Activity
-plot_activity=0;
+plot_activity=1;
 if plot_activity
     figure(4)
     subplot(2,3,[1 2])
@@ -128,12 +128,10 @@ if plot_activity
     xlabel('E[exp(U)]')
     ylabel('exp( \mu + 0.5\sigma^2 )')
     hold off
-    
-    %% Check Gaussianty
-% figure
-% var_U=var(U_no_bias,[],2);
-% kar_U=mean((bsxfun(@plus,U_no_bias,-mean(U_no_bias,2))).^4,2);
-% plot(kar_U,3*var_U.^2,'.',kar_U,kar_U,'-')
-
 end
+%% Check Gaussianty
+figure
+var_U=var(U_no_bias,[],2);
+kar_U=mean((bsxfun(@plus,U_no_bias,-mean(U_no_bias,2))).^4,2);
+plot(kar_U,3*var_U.^2,'.',kar_U,kar_U,'-')
 

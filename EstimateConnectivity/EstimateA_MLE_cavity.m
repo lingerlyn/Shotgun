@@ -8,7 +8,7 @@ finv=@(x)log(x./(1-x));
 m=rates;
 Myx=Cxy'+m*m';
 % remove zeros from Myx
-temp = sort(Myx(:));
+temp = unique(Myx(:));
 min2 = temp(2); %second smallest value in Myx
 Myx(Myx==0)=min2;
 

@@ -23,7 +23,7 @@ for nn=1:N
 
     %% Re-weighted L1
 %     addpath('utilities/spgl1-1.8'); 
-    resparse_eps = 1e-3;
+    resparse_eps = 1e-2;
     N_resparse=2; % number of times to resparse the solution using re-weighted l1-norm
 
     for ii = 1:N_resparse

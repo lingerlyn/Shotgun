@@ -1,4 +1,4 @@
-function [EW, Eb,quality]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,pen_dist,warm,true_W,centers)
+function [EW, Eb,quality,lambda_path]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,pen_dist,warm,true_W,centers)
 % Following derivation in GLM_GradUsingSampling 13.1.2015.lyx
 
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
@@ -17,9 +17,10 @@ function [EW, Eb,quality]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_
 % EW: MAP estimate of weights
 % Eb: MAP estimate of weights
 % true_RMSE: MSE from true W
+% lambda_path: regularization constants used during binary search
 
 %internal params
-Tol_sparse=0.05; %tolerance for sparsity level
+Tol_sparse=0.01; %tolerance for sparsity level
 N=length(rates);
 Tol_FISTA=1e-10; %toleratnce for fista
 max_iterations=300;
@@ -29,6 +30,10 @@ show_progress=0; %show figures with progress
 show_w=0; %#ok show figures with W (estimate vs true) 
 reweighted_L1_Reps=1;
 reweighted_L1_eps=1e-3;
+
+CXX=full(CXX);
+CXY=full(CXY);
+rates=full(rates);
 
 L=5*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
 lambda_high0=1e2;%max(1e4,1e1*L); %maximum bound for lambda
@@ -42,7 +47,7 @@ y=x;
 Eb=0;
 z=0;
 quality=[]; %MSE from true W        
-
+lambda_path=[];
 
 if pen_diag
     mask0=ones(N);
@@ -208,8 +213,9 @@ for kk=1:reweighted_L1_Reps
             loop_cond=0;
         end
 
-        [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( true_W,x );
-        quality(end+1,:)=[R,correlation, zero_matching,sign_matching] ; %#ok    
+        
+        [R,correlation, zero_matching,sign_matching,TPR_p,FPR_p,TPR_n,FPR_n] = GetWeightsErrors( true_W,x );
+        quality(end+1,:)=[R,correlation, zero_matching,sign_matching,TPR_p,FPR_p,TPR_n,FPR_n]; %#ok    
 
         if loop_cond
             if (iteration>max_iterations);
@@ -236,6 +242,8 @@ for kk=1:reweighted_L1_Reps
         else
             lambda_low=lambda
         end
+        lambda_path(end+1)=lambda; %#ok
+  
     end
 end
         

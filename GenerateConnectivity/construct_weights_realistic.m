@@ -1,4 +1,4 @@
-function [W,centers] = construct_weights_realistic(N,inhib_frac)
+function [W,centers] = construct_weights_realistic(N,inhib_frac,spar)
 %CONSTRUCT_WEIGHTS returns the weight matrix such that
 % connectivity is randomly drawn from some diftribution
 
@@ -22,7 +22,7 @@ sgn_array(1:(1/inhib_frac):end)=-1;
 %%  Physiological distance dependent connection probability
 D=3;
 centers=rand(N,D); %assume neurons are on a D lattice                
-[p,dist]=GetDistProb(centers);
+[p,dist]=GetDistProb(centers,spar);
 
 %% connection strengths
 m_EI=1;

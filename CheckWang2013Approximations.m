@@ -11,6 +11,28 @@ set(h,'Units','centimeters','Position',[2 5 20 10])
 x=-5:0.001:5;
 c=sqrt(pi/8);
 
+%% Plot Log approximation
+s_array=[0.1, 1, 2, 3];
+for s=s_array
+mu=-5:0.01:5;
+
+W=bsxfun(@times,s,randn(10000,1));
+X=bsxfun(@plus,mu,W);
+y=mean(log((1+exp(X))),1);
+z=sqrt(1+(pi*s.^2)/8).*log((1+exp(mu./(sqrt(1+(pi*s.^2)/8)))));
+    colorOrder = get(gca, 'ColorOrder');
+    current_color=colorOrder(mod(length(get(gca, 'Children')), size(colorOrder, 1))+1, :);
+plot(mu,y,'-',mu,z,'--','color',current_color)
+xlabel('$\mu$')
+hold all
+end
+set(gca,'xtick',-5:5)
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
+Export2Folder(['WangApprox.eps'],target_folder) 
+
+%% Other stuff
+
+
 % c=sqrt(2*pi)*exp(b^2/2)/(2+exp(b)+exp(-b));
 % y=normcdf(c*x,0,1);
 % c=0.36;
@@ -35,19 +57,6 @@ xlim([min(x) max(x)])
  
 % target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript';
 % Export2Folder(['WangApprox.eps'],target_folder) 
-
-%% 
-% mu=-10:0.01:10;
-% s=1;
-mu=1;
-s=0:0.01:100;
-W=bsxfun(@times,s,randn(100000,1));
-X=bsxfun(@plus,mu,W);
-y=mean(log(1./(1+exp(-X))),1);
-z=sqrt(1+(pi*s.^2)/8).*log(1./(1+exp(-mu./(sqrt(1+(pi*s.^2)/8)))));
-
-% plot(mu,y,mu,z)
-plot(s,y,s,z)
 
 %% version 2
 clear all

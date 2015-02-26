@@ -6,12 +6,13 @@ clc
 addpath('GenerateSpikes');
 addpath('Misc')
 
-set(0,'DefaultTextInterpreter', 'latex');
+% set(0,'DefaultTextInterpreter', 'latex');
+set(0,'DefaultTextInterpreter', 'none');
 set(0,'DefaultAxesFontSize',11)
 set(0,'defaultAxesFontName', 'Times')
 set(0,'defaultTextFontName', 'Times')
 
-subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.1], [0.2 0.2], [0.1 0.1]);
+subplot = @(m,n,p) subtightplot (m, n, p, [0.03 0.05], [0.2 0.2], [0.1 0.1]);
 % subplot = @(m,n,p) subtightplot (m, n, p, [0.1 0.08], [0.07 0.04], [0.05 0.01]);
 
 title_height=1;
@@ -58,7 +59,7 @@ switch kk
         name='Random Blocks';
     case 5
         sample_type=sample_type_set{5};
-        name='Doubled Serial';
+        name='Double Serial';
 end 
 
 observations=SampleSpikes(N,T,sample_ratio,sample_type,obs_duration,N_stim,seed_sample,t_start);
@@ -66,11 +67,14 @@ observations=SampleSpikes(N,T,sample_ratio,sample_type,obs_duration,N_stim,seed_
 subplot(a,b,(kk-1)*b+[1 2])
 imagesc(tt,[],observations(:,t_show))
 % title('(A)', 'Units', 'normalized', 'Position', [title_horz title_height], 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font) 
-xlabel('t [sec]','fontweight','bold');
+if kk==M
+    xlabel('Time [sec]','fontweight','bold');
+end
 ylabel(name,'fontweight','bold');
 % ylabel('cell number');
 % title(name, 'Units', 'normalized', 'fontweight','bold','fontsize',title_font) 
 colormap('gray')
+set(gca,'fontWeight','bold')
 freezeColors
 
 subplot(a,b,(kk-1)*b+3)
@@ -90,7 +94,9 @@ colorbar_labels = get(hc,'YTickLabel');
 colorbar_labels=[colorbar_labels, [repmat(' ',1,size(colorbar_labels,1)-1), '<']'];
 set(hc,'YTickLabel',colorbar_labels);
 colormap('jet')
+ set(gca,'fontWeight','bold')
 freezeColors
+
 
 % subplot(a,b,(kk-1)*b+5)
 % 
@@ -112,5 +118,5 @@ freezeColors
 end
 
 % %
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript';
 Export2Folder(['Observations.eps'],target_folder) 

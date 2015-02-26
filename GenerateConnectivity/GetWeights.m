@@ -27,7 +27,7 @@ switch network_type
     case 'prob'        
         A=construct_weights_probabilistic(N, spar,inhib_frac,weight_dist);
     case 'realistic'        
-        [A,centers]=construct_weights_realistic(N,inhib_frac);
+        [A,centers]=construct_weights_realistic(N,inhib_frac,spar);
     case 'balanced'   
         lr_conn = 0.1;
         A = construct_bal_weights(N,spar,lr_conn);      
