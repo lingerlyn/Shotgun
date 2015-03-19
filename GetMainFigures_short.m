@@ -11,9 +11,9 @@ set(0,'DefaultAxesFontSize',10)
 subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.07], [0.06 0.1], [0.08 0.01]);
 T=2e6;
 T_view=3e2;
-N=1e3;
+N=50;
 dt=1e-2; %100 Hz imaging frame rate
-isLIF=0; %are we using LIF?
+isLIF=1; %are we using LIF?
 
 if N==50
     observations_ratios= [1,0.2,0.1,0.04];
@@ -27,7 +27,7 @@ elseif N==1e3;
 end
 
 fontsize=10;
-fontsize2=12; 
+fontsize2=14; 
 L_bins=30; %number of bins in the weight histogram
 %% Figure 1 - Toy model 
 % In this figure:
@@ -37,7 +37,7 @@ L_bins=30; %number of bins in the weight histogram
 % balanced network (no Dale's law yet)
 
 L=length(observations_ratios);
-K=7; %width of subplots
+K=4; %width of subplots
 x_ticks={'R','C','Z','S'};
 
 %% Plot Network statistics
@@ -70,7 +70,7 @@ xlabel('W');
 ylabel('count');
 
 ii=0;
- subplot(L+1,K,K*ii+[5 6])
+ subplot(L+1,K,K*ii+[3 4])
 A_ind=linspace(mi2,ma2,100);
 plot(A_ind,A_ind,'r-');
 hold all
@@ -83,30 +83,28 @@ hold off
 xlabel('W','fontsize',fontsize2)
 ylabel('W','fontsize',fontsize2)
 
-subplot(L+1,K,K*ii+[3 4])
-mi3=-2;%min([W(:) ;EW(:)]);
-ma3=2;%max([W(:) ;EW(:)]);
-bins=linspace(mi3,ma3,L_bins);
-%     hist_W=hist(W(~~W(:)),bins);
-%     hist_EW=hist(EW(~~EW(:)),bins);
-hist_W=hist(W(:),bins);
-semilogy(bins,hist_W,'bo','linewidth',2);
-xlim([mi3 ma3]);
-xlabel('W','fontsize',fontsize2)
-ylabel('count','fontsize',fontsize2)
+% subplot(L+1,K,K*ii+[3 4])
+% mi3=-2;%min([W(:) ;EW(:)]);
+% ma3=2;%max([W(:) ;EW(:)]);
+% bins=linspace(mi3,ma3,L_bins);
+% hist_W=hist(W(:),bins);
+% semilogy(bins,hist_W,'bo','linewidth',2);
+% xlim([mi3 ma3]);
+% xlabel('W','fontsize',fontsize2)
+% ylabel('count','fontsize',fontsize2)
 %     if ii==1
 %         h=legend('W','$\hat{W}$')
 %         set(h,'Interpreter','latex','fontsize',fontsize,'location','northwest','orientation','horizontal')
 %     end
 
-subplot(L+1,K,K*ii+7)
-[R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,W );
-% AUROC=[1 1];
-% bar( [R,correlation, zero_matching,sign_matching,AUROC(1),AUROC(2)] );    
-bar( [R,correlation, zero_matching,sign_matching] );    
-ylim([0 1])
-ylabel('quality','fontsize',fontsize)
-set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
+% subplot(L+1,K,K*ii+5)
+% [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,W );
+% % AUROC=[1 1];
+% % bar( [R,correlation, zero_matching,sign_matching,AUROC(1),AUROC(2)] );    
+% bar( [R,correlation, zero_matching,sign_matching] );    
+% ylim([0 1])
+% ylabel('quality','fontsize',fontsize)
+% set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
 
 
 %%
@@ -126,7 +124,7 @@ for ii=1:L
     ylabel(['$p_{\mathrm{obs}}=$' num2str(observations_ratios(ii))],'fontsize',fontsize2)
     colormap('jet')
 
-    subplot(L+1,K,K*ii+[5 6])
+    subplot(L+1,K,K*ii+[3 4])
     A_ind=linspace(mi2,ma2,100);
     plot(A_ind,A_ind,'r-');
     hold all
@@ -140,34 +138,33 @@ for ii=1:L
     xlabel('W','fontsize',fontsize2)
     ylabel('$\hat{W}$','fontsize',fontsize2)
 
-    subplot(L+1,K,K*ii+[3 4])
-    mi3=-2;%min([W(:) ;EW(:)]);
-    ma3=2;%max([W(:) ;EW(:)]);
-    bins=linspace(mi3,ma3,L_bins);
-%     hist_W=hist(W(~~W(:)),bins);
-%     hist_EW=hist(EW(~~EW(:)),bins);
-    hist_W=hist(W(:),bins);
-    hist_EW=hist(EW(:),bins);
-    semilogy(bins,hist_W,'bo',bins,hist_EW,'r.','linewidth',2);
-    xlim([mi3 ma3]);
-    xlabel('W','fontsize',fontsize2)
-    ylabel('count','fontsize',fontsize2)
+%     subplot(L+1,K,K*ii+[3 4])
+%     mi3=-2;%min([W(:) ;EW(:)]);
+%     ma3=2;%max([W(:) ;EW(:)]);
+%     bins=linspace(mi3,ma3,L_bins);
+%     hist_W=hist(W(:),bins);
+%     hist_EW=hist(EW(:),bins);
+%     semilogy(bins,hist_W,'bo',bins,hist_EW,'r.','linewidth',2);
+%     xlim([mi3 ma3]);
+%     xlabel('W','fontsize',fontsize2)
+%     ylabel('count','fontsize',fontsize2)
 %     if ii==1
 %         h=legend('W','$\hat{W}$')
 %         set(h,'Interpreter','latex','fontsize',fontsize,'location','northwest','orientation','horizontal')
 %     end
     
-   subplot(L+1,K,K*ii+7)
-   [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW );
-%    [AUROC, ROC] = GetROCforW(quality)
-    % bar( [R,correlation, zero_matching,sign_matching,AUROC(1),AUROC(2)] );    
-    bar( [R,correlation, zero_matching,sign_matching] );    
-    ylim([0 1])
-    ylabel('quality','fontsize',fontsize)
-    set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
+%    subplot(L+1,K,K*ii+5)
+%    [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW );
+% %    [AUROC, ROC] = GetROCforW(quality)
+%     % bar( [R,correlation, zero_matching,sign_matching,AUROC(1),AUROC(2)] );    
+%     bar( [R,correlation, zero_matching,sign_matching] );    
+%     ylim([0 1])
+%     ylabel('quality','fontsize',fontsize)
+%     set(gca, 'XTickLabel', x_ticks,'fontsize',fontsize);
     
 
 end
 
-% target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
 % Export2Folder(['Sparsity' LIF_str '_N=' num2str(N) '.eps'],target_folder) 
+Export2Folder(['Short_Sparsity' LIF_str '_N=' num2str(N) '.eps'],target_folder) 

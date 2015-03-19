@@ -11,8 +11,14 @@ function [R,correlation, zero_matching,sign_matching,TPR_p,FPR_p,TPR_n,FPR_n] = 
     zero_matching=1-0.5*sum( (EW(:)~=0).*(W(:)==0)+ (EW(:)==0).*(W(:)~=0))/sum(W(:)~=0) ;
     sign_matching=1-0.5*sum( (EW(:)~=0).*(W(:)~=0).*abs(sign(EW(:))-sign(W(:))))/sum((EW(:)~=0).*(W(:)~=0)) ;
     
-    W_save=W;
-    EW_save=EW;
+    N=size(W,1);
+    if ismatrix(W)==2
+        W_save=W(eye(N)<0.5);
+        EW_save=EW(eye(N)<0.5);
+    else
+        W_save=W;
+        EW_save=EW;
+    end 
     for sgn=[-1, 1]        
         W=W_save;
         W(sign(W)~=sgn)=0;

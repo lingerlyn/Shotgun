@@ -14,10 +14,10 @@ Tol_sparse=0.1; %tolerance for sparsity level
 %initialize FISTA
 x=0*CXY';
 y=x;
-L=2*max(eig(CXX)); %lipshitz constant
+L=2*max(abs(eig(CXX))); %lipshitz constant
 
 %initialize binary search
-lambda_high=1e2*L; %maximum bound for lambda
+lambda_high=1e4; %maximum bound for lambda
 lambda_low=1e-4;  %minimum bound for lambda
 loop_cond=1;  %flag for while llop
 

@@ -1,4 +1,4 @@
-function W_next=Estimate_weights_Gibbs(h0,mu0,sigma0,b,spikes,W_prev)
+function [W_next, accept_ratio]=Estimate_weights_Gibbs(h0,mu0,sigma0,b,spikes,W_prev)
 % input:    
 % h_prev,mu_prev,sigma_prev - previous estimate of Slab probability, mean and variance in spike&slab prior of connectivty matrix W
 % h_prev,mu_prev,sigma_prev - Prior on Slab probability, mean and variance in spike&slab prior of connectivty matrix W
@@ -9,6 +9,7 @@ use_MH=1; %should we use Metropolis-Hastings algorithm to correct proposal?
 
 % output:
 % W - sample from weight matrix
+
 
 %% initialize
 N=size(W_prev,1);
@@ -39,6 +40,7 @@ for nn=rand_indices
    slab_occur=(rand(N,1)<func(h));
    slab_value=mu+sqrt(ss).*randn(N,1);
    W_next(:,nn)=slab_occur.*slab_value; %sample from proposal density   
+   accept_ratio=0;
   
    %% Metropolis-Hastings part
    if use_MH
@@ -66,6 +68,7 @@ for nn=rand_indices
     
     p_accept=min(1,exp(log_lik_next-log_lik_prev).*log_prior_next.*log_proposal_reverse.*(log_prior_prev.^(-1)).*(log_proposal_forward.^(-1))) ;
     accept=rand(N,1)<p_accept;
+    accept_ratio=accept_ratio+mean(accept)/N;
     W(accept,nn)=W_next(accept,nn);
    else
        W(:,nn)=W_next(:,nn);

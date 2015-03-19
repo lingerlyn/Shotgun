@@ -1,4 +1,4 @@
-function [EW, Eb,quality,lambda_path]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,pen_dist,warm,true_W,centers)
+function [EW, Eb,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(CXX,CXY,rates,sparsity,N_stim,pen_diag,pen_dist,warm,true_W,centers)
 % Following derivation in GLM_GradUsingSampling 13.1.2015.lyx
 
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
@@ -16,15 +16,19 @@ function [EW, Eb,quality,lambda_path]=EstimateA_L1_logistic_cavity(CXX,CXY,rates
 % OUTPUTS:
 % EW: MAP estimate of weights
 % Eb: MAP estimate of weights
-% true_RMSE: MSE from true W
+% quality: quality estimates during convergence
+% error_rates: 4xL array erros rates, for positive and negative weights estimated during during exponential search (on regularization path)
 % lambda_path: regularization constants used during binary search
 
+
 %internal params
-Tol_sparse=0.01; %tolerance for sparsity level
+Tol_sparse=0.03; %tolerance for sparsity level
 N=length(rates);
 Tol_FISTA=1e-10; %toleratnce for fista
-max_iterations=300;
-last_max_iterations=20*max_iterations;
+max_iterations=1000;
+last_max_iterations=10*max_iterations;
+lambda0=1e2; %initial value  of regularization constant
+rho=1e2; % parameter for exponential search. should be larger then 1
 use_sampling=0; %use sampling to calculate Gaussian integral. Typically slower, so don't use
 show_progress=0; %show figures with progress
 show_w=0; %#ok show figures with W (estimate vs true) 
@@ -36,9 +40,6 @@ CXY=full(CXY);
 rates=full(rates);
 
 L=5*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
-lambda_high0=1e2;%max(1e4,1e1*L); %maximum bound for lambda
-lambda_low0=min(1e-8,1e-8*L);  %minimum bound for lambda
-% approx_thresh=0.05; %approximation threshold
 
 %initialize FISTA
 % x=zeros(N);%*sparse(N,N);
@@ -48,6 +49,7 @@ Eb=0;
 z=0;
 quality=[]; %MSE from true W        
 lambda_path=[];
+error_rates=[];
 
 if pen_diag
     mask0=ones(N);
@@ -67,21 +69,23 @@ for kk=1:reweighted_L1_Reps
         mask=mask0;
     end
     
-    %initialize binary search
-    lambda_high=lambda_high0;%max(1e4,1e1*L); %maximum bound for lambda
-    lambda_low=lambda_low0;  %minimum bound for lambda
-    % lambda_high=1e-1;
-    % lambda_low=1e-5;
-    loop_cond=1;  %flag for while llop
-    cond=1;
+    %initialize exponential binary search
+    lambda_low=-1;
+    lambda_high=-1;
+
+    if sparsity==1
+        relative_sparsity=0;
+        lambda=0;
+    else
+        relative_sparsity=inf;  
+        lambda=lambda0;
+    end
     spar_array=[];
+    loop_cond=1;
 
     while  loop_cond %binary search for lambda that give correct sparsity level
-        if sparsity==1
-            lambda=0;
-        else
-            lambda=(lambda_high+lambda_low)/2;
-        end
+
+    loop_cond=( relative_sparsity>  Tol_sparse);
 
     %%% FISTA
     if ~warm
@@ -154,7 +158,10 @@ for kk=1:reweighted_L1_Reps
 
         iteration=iteration+1;    
         MAE(end+1)=mean(abs(x(:)-x_prev(:))); %#ok    
-
+        [R,correlation, zero_matching,sign_matching,~,~,~,~] = GetWeightsErrors( true_W,x );
+        quality(end+1,:)=[R,correlation, zero_matching,sign_matching]; %#ok  
+        lambda_path(end+1)=lambda; %#ok  
+            
         if show_progress
             disp(['MAE=' num2str(MAE(end))]);
             figure(1000)
@@ -192,31 +199,8 @@ for kk=1:reweighted_L1_Reps
             bar([lambda_low,lambda, lambda_high])
         end
 
-    %     if length(MAE)>20
-    %         if MAE(end-1)<MAE(end)
-    %             disp('Liphshitz constant doubled')
-    %             L=2*L;
-    %             lambda_high=lambda_high*2;
-    %             lambda_low=lambda_low*2;
-    %             lambda=lambda*2;
-    %         end
-    %     end
-
-        FISTA_cond=(MAE(end)>Tol_FISTA)||(iteration<30);
-
-        temp=~~x(1:(end-N_stim),1:(end-N_stim));
-        sparsity_measure=mean(temp(:));    
-        cond=sparsity_measure<sparsity;
-        relative_sparsity=abs(sparsity_measure-sparsity)/sparsity;
-        loop_cond=( relative_sparsity>  Tol_sparse);
-        if sparsity==1
-            loop_cond=0;
-        end
-
+       FISTA_cond=(MAE(end)>Tol_FISTA)||(iteration<30);
         
-        [R,correlation, zero_matching,sign_matching,TPR_p,FPR_p,TPR_n,FPR_n] = GetWeightsErrors( true_W,x );
-        quality(end+1,:)=[R,correlation, zero_matching,sign_matching,TPR_p,FPR_p,TPR_n,FPR_n]; %#ok    
-
         if loop_cond
             if (iteration>max_iterations);
                 break    
@@ -233,16 +217,31 @@ for kk=1:reweighted_L1_Reps
         end
     end
     %%% 
+        
+        [~,~,~,~,TPR_p,FPR_p,TPR_n,FPR_n]= GetWeightsErrors( true_W,x );
+        error_rates(end+1,:)=[TPR_p,FPR_p,TPR_n,FPR_n]; %#ok  
+        
+    
 
-
-        sparsity_measure
+        temp=~~x(1:(end-N_stim),1:(end-N_stim));
+        sparsity_measure=mean(temp(:))    
         spar_array(end+1)=sparsity_measure; %#ok
-        if cond
+        relative_sparsity=abs(sparsity_measure-sparsity)/sparsity;
+
+        if sparsity_measure<sparsity
             lambda_high=lambda
         else
             lambda_low=lambda
         end
-        lambda_path(end+1)=lambda; %#ok
+        
+        %exponential binary search
+        if lambda_high==-1
+            lambda=rho*lambda;
+        elseif lambda_low==-1
+            lambda=lambda/rho;
+        else
+            lambda=(lambda_high+lambda_low)/2;
+        end
   
     end
 end

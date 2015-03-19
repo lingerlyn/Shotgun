@@ -1,43 +1,27 @@
-function [AUROC, ROC] = GetROCforW( W,EW,sgn)
-% Calculate the Area Under an ROC Curve
+function [AUROC, ROC] = GetROCforW(error_rates)
+% Get ROC and Calculate the Area Under an ROC Curve
 % inputs: 
-% label - Nx1 long binary vector (0/1)
-% predicted_label - Nx1 long vector of probabilities
-% outputs: 
-% AUROC -  Total area under ROC curve
-% ROC- an 2xL array for ROC curve: first row false positive rate,  second row true positive rate.
-% sgn - for which sign to calculate the ROC (1 - excitatatory weights, 0 - inhibitory weights)
+% quality - output from EstimateA_L1_logistic_cavity
+% output: 
+% AUROC - 2x1 Total area under ROC curve, for positive and negative weights
+% ROC-  2x2xL array for ROC curve: dim1 - positive and negative weights,
+% dim2 -  first row false positive rate,  second row true positive rate , dim3 - different values 
 
-L=1e4; %number of points to sample the ROC curve
+% semilogx(lambda_path,quality(:,5:6))
 
-W(sign(W)~=sgn)=0;
-W=abs(W);
-EW(sign(EW)~=sgn)=0;
-EW=abs(EW);
-
-TP=zeros(1,L);
-FP=zeros(1,L);
-TN=zeros(1,L);
-FN=zeros(1,L);
-thresholds=linspace(-1e-15,max([W(:);EW(:)]),L);
-
-for kk=1:L
-    positive=abs(W(:))>0;
-    prediction=EW(:)-thresholds(kk)>0;
-    
-    FP(kk)=mean((prediction).*(~positive));
-    TP(kk)=mean((prediction).*(positive));
-    TN(kk)=mean((~prediction).*(~positive));
-    FN(kk)=mean((~prediction).*(positive));
+for ii=1:2
+    kk=2*ii;
+    x=error_rates(:,kk);
+    y=error_rates(:,kk-1);
+    [x,ind]=sort(x);
+    y=y(ind);
+    x=[0; x; 1]; %#ok
+    y=[0; y; 1]; %#ok    
+    ROC(ii,1,:)=x; %#ok
+    ROC(ii,2,:)=y; %#ok
+    AUROC(ii)=trapz(x,y); %#ok
 end
 
-TPR=TP./(TP+FN);
-FPR=FP./(FP+TN);
-ROC=zeros(2,L);
-ROC(1,:)=FPR;
-ROC(2,:)=TPR;
-delta_FPR=-diff(FPR,1)+eps;
-AUROC=sum(TPR(2:end).*delta_FPR);
 
 end
 

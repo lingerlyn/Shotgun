@@ -24,6 +24,13 @@ else
     neuron_str=[];
 end
 
+if params.spike_gen.CalciumObs==1
+    Calcium_str=['_CalciumObs'];
+else
+    Calcium_str=[];
+end
+
+
 if strcmp(params.conn_est_flags.est_type,'Gibbs')   
     est_type_str=['_Gibbs'];
 elseif strcmp(params.conn_est_flags.est_type,'FullyObservedGLM')   
@@ -35,7 +42,7 @@ else
 end
 
 
-file_name=fullfile('Results',['Run_N=' num2str(N) '_obs=' num2str(obs) '_T=' num2str(T) stim_str sample_type neuron_str est_type_str '.mat']);
+file_name=fullfile('Results',['Run_N=' num2str(N) '_obs=' num2str(obs) '_T=' num2str(T) stim_str sample_type neuron_str est_type_str Calcium_str '.mat']);
 
 end
 

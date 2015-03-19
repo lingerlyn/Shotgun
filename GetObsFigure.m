@@ -119,4 +119,11 @@ end
 
 % %
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript';
-Export2Folder(['Observations.eps'],target_folder) 
+figure_name='Observations';
+    
+set(gcf, 'Color', 'w');    
+set(findall(gcf,'type','text'),'fontWeight','bold')
+%     set(gca,'fontWeight','bold')
+print(gcf,figure_name, '-painters','-depsc2')
+
+movefile(figure_name, fullfile(target_folder,figure_name));

@@ -4,7 +4,7 @@ clc
 
 addpath(genpath('CalciumMeasurements')); %adds folder with subfolders
 data_types={'Tolias','Tim','Manolis','Sim'};
-data=data_types(4);
+data=data_types(1);
 order_arpfit=1;
 order_sysid=1;
 plot_stuff=1;

@@ -29,6 +29,9 @@ switch network_type
     case 'realistic'        
         [A,centers]=construct_weights_realistic(N,inhib_frac,spar);
     case 'balanced'   
+        lr_conn = 0.2;
+        A = construct_bal_weights(N,spar,lr_conn);     
+    case 'balanced2'   
         lr_conn = 0.1;
         A = construct_bal_weights(N,spar,lr_conn);      
     case 'common_input'   

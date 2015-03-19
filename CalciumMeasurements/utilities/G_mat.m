@@ -2,6 +2,13 @@ function b = G_mat(x,mode,T,g,bas_est,varargin)
 
 % bas_est       flag for estimating baseline
  %G = spdiags(ones(T,1)*[-flipud(g(:))',1],-length(g):0,T,T);
+ if size(x,2)>size(x,1)
+    x=x';
+    trans_flag=1;
+ else
+    trans_flag=0;
+ end
+ 
  switch length(varargin)
      case 0
          z=1;
@@ -28,5 +35,10 @@ elseif mode == 2
     else
         b = flipud(filter(z,[1;-g(:)],flipud(x)));
     end
-    %b = [G'\x;sum(x)] ;
+    %b = [G'\x;sum(x)] ;  
+end
+
+  if trans_flag
+    b=b';
+ end
 end

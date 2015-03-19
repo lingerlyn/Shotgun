@@ -3,23 +3,23 @@ function params=SetParams()
 %% Network parameters
 N=500; %number of neurons
 N_stim=0; %number of stimulation sources
-N_unobs=0.2*round(0.2*N); %number of neurons completely unobserved 
+N_unobs=0*round(0.2*N); %number of neurons completely unobserved 
 N=N_unobs+N;
 spar =0.2; %sparsity level - set as empty for default value in realistic conn_type; 
 bias=-3*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
-target_rates=0.05; %set as empty if you want to add a specific bias.
+target_rates=[0.2]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
 weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
-conn_type='realistic';
+conn_types={'realistic','rand','common_input', 'balanced', 'balanced2'};
+conn_type=conn_types{1};
 inhib_frac=0.2;
 weight_dist_types={ 'lognormal','uniform'};
 weight_dist=weight_dist_types{1}; %
-connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);
-
+connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);5
 %% Spike Generation parameters
-T=2e6; %timesteps
+T=1e7; %timesteps
 T0=1e2; %burn-in time 
-sample_ratio=1; %fraction of observed neurons per time step
+sample_ratio=0.2; %fraction of observed neurons per time step
 neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson','LIF'};
 neuron_type=neuron_type_set{2}; 
 sample_type_set={'continuous','spatially_random','prob','double_continuous'};
