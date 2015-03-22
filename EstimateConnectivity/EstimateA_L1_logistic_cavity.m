@@ -22,13 +22,13 @@ function [EW, Eb,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(C
 
 
 %internal params
-Tol_sparse=0.03; %tolerance for sparsity level
+Tol_sparse=0.02; %tolerance for sparsity level
 N=length(rates);
 Tol_FISTA=1e-10; %toleratnce for fista
 max_iterations=1000;
 last_max_iterations=10*max_iterations;
-lambda0=1e2; %initial value  of regularization constant
-rho=1e2; % parameter for exponential search. should be larger then 1
+lambda0=1e-2; %initial value  of regularization constant
+rho=1e1; % parameter for exponential search. should be larger then 1
 use_sampling=0; %use sampling to calculate Gaussian integral. Typically slower, so don't use
 show_progress=0; %show figures with progress
 show_w=0; %#ok show figures with W (estimate vs true) 
@@ -163,7 +163,9 @@ for kk=1:reweighted_L1_Reps
         lambda_path(end+1)=lambda; %#ok  
             
         if show_progress
-            disp(['MAE=' num2str(MAE(end))]);
+            if ~show_w
+                disp(['MAE=' num2str(MAE(end))]);
+            end
             figure(1000)
 
             a=3; b=2;
@@ -224,7 +226,7 @@ for kk=1:reweighted_L1_Reps
     
 
         temp=~~x(1:(end-N_stim),1:(end-N_stim));
-        sparsity_measure=mean(temp(:))    
+        sparsity_measure=mean(temp(eye(size(temp,1))<0.5))    
         spar_array(end+1)=sparsity_measure; %#ok
         relative_sparsity=abs(sparsity_measure-sparsity)/sparsity;
 

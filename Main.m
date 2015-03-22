@@ -8,15 +8,19 @@ addpath('GenerateConnectivity')
 addpath('GenerateSpikes');
 addpath(genpath('CalciumMeasurements'));
 
-sample_ratio_array=[0.2];
-for kk=1:length(sample_ratio_array)
+ parameter_scan_array=0;
+
+for kk=1:length( parameter_scan_array)
 %% Set params - later write a function for several default values
 params=SetParams;
-params.spike_gen.sample_ratio=sample_ratio_array(kk);
+% params.spike_gen.sample_ratio= parameter_scan_array(kk);
+params.connectivity.N_stim=parameter_scan_array(kk);
+params.spike_gen.N_stim=parameter_scan_array(kk);
 
 %% Generate Connectivity - a ground truth N x N glm connectivity matrix, and bias
 addpath('GenerateConnectivity')
 [N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs]=v2struct(params.connectivity);
+N_obs=N-N_unobs;
 
 tic
 [W,centers]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
@@ -29,8 +33,9 @@ RunningTime.GetWeights=toc;
 
 
 if isempty(params.stat_flags.est_spar)
-    params.stat_flags.est_spar=nnz(W(eye(N)<0.5))/(N^2-N); %correct sparsity estimation. Cheating????
-    params.conn_est_flags.est_spar=nnz(W(eye(N)<0.5))/(N^2-N); %correct sparsity estimation. Cheating????
+    W_nostim=W(1:N,1:N);
+    params.stat_flags.est_spar=nnz(W_nostim(eye(N)<0.5))/(N^2-N); %correct sparsity estimation to actual sparsity
+    params.conn_est_flags.est_spar=nnz(W_nostim(eye(N)<0.5))/(N^2-N); 
 end
 
 %sorted W
@@ -144,17 +149,19 @@ error_rates=[];
 tic
 
 EW3=Cxy'/Cxx;
-
-if strncmpi(neuron_type,'logistic',8)
-    [amp, Ebias2]=logistic_ELL(rates,EW3,Cxx,Cxy);    
-else
+% 
+% if strncmpi(neuron_type,'logistic',8)
+%     [amp, Ebias2]=logistic_ELL(rates,EW3,Cxx,Cxy);    
+% else
+    Ebias2=bias*0;
     amp=ones(size(EW3,1),1);
-end
+% end
+Ebias=Ebias2;
 EW3=diag(amp)*EW3;
 EW2=EW3;
 EW=EW3;
 
-N_obs=N-N_unobs;
+
 switch est_type
 %     case 'Linear'
         %         EW=EstimateA_L1(Cxy,Cxy,est_spar);
@@ -214,11 +221,11 @@ end
 % Remove stimulus parts
 if N_stim>0
     W=W(1:N,1:N);
-    EW=EW(1:N,1:N);
-    EW2=EW2(1:N,1:N);
-    EW3=EW3(1:N,1:N);
-    Ebias=Ebias(1:N);
-    Ebias2=Ebias2(1:N);
+    EW=EW(1:N_obs,1:N_obs);
+    EW2=EW2(1:N_obs,1:N_obs);
+    EW3=EW3(1:N_obs,1:N_obs);
+    Ebias=Ebias(1:N_obs);
+    Ebias2=Ebias2(1:N_obs);
     spikes=spikes(1:N,:);
     true_spikes=true_spikes(1:N,:);
 end

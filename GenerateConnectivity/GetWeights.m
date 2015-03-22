@@ -86,6 +86,7 @@ end
                 A(ind_range,ind_range)=5*A(ind_range,ind_range);
         end
     else
+%         G=rand(N,N_stim)<spar;
         G=ones(N,N_stim);
     end
 %     G=zeros(N,N_stim);

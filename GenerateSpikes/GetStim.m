@@ -13,10 +13,11 @@ switch stim_type
         T_pulse=1e3;
         duty_cycle=0.5;
         pulse_mag=1;
-        pulse_std=0.1*pulse_mag;
+        pulse_std=0*0.1*pulse_mag;
+        fast_pulse_rate=0.5;
         
         t_cycle=mod(1:T,T_pulse)>T_pulse*duty_cycle;
-        stim=bsxfun(@times,(pulse_mag)+pulse_std*randn(N_stim,T),t_cycle);     
+        stim=(bsxfun(@times,(pulse_mag)+pulse_std*randn(N_stim,T),t_cycle)).*(rand(N_stim,T)<fast_pulse_rate);     
      case 'delayed_pulses'
         pulse_mag=1;
         

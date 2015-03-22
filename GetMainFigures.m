@@ -8,12 +8,12 @@ addpath('Misc')
 addpath('GenerateSpikes');
 set(0,'DefaultTextInterpreter', 'latex');
 set(0,'DefaultAxesFontSize',10)
-subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.07], [0.06 0.1], [0.08 0.01]);
+subplot = @(m,n,p) subtightplot (m, n, p, [0.06 0.07], [0.06 0.05], [0.08 0.01]);
 T=2e6;
 T_view=3e2;
-N=1e3;
+N=50;
 dt=1e-2; %100 Hz imaging frame rate
-isLIF=0; %are we using LIF?
+isLIF=1; %are we using LIF?
 
 if N==50
     observations_ratios= [1,0.2,0.1,0.04];
@@ -169,5 +169,5 @@ for ii=1:L
 
 end
 
-% target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
-% Export2Folder(['Sparsity' LIF_str '_N=' num2str(N) '.eps'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision';
+Export2Folder(['Sparsity' LIF_str '_N=' num2str(N) '.eps'],target_folder) 

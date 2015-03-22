@@ -77,8 +77,8 @@ for ii=1:length(observations_ratios)
 load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T) '_Cavity_noCalcium.mat'],'W','EW');
 
 subplot([1 2]+(ii-1)*b)
-mi=min(W(:))*1.2;
-ma=max(W(:))*1.2;
+mi=min([W(:); EW(:)])*1.2;
+ma=max([W(:); EW(:)])*1.2;
 A_ind=linspace(mi,ma,100);
 plot(A_ind,A_ind,'g-')
 hold all
