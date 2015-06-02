@@ -9,6 +9,11 @@ end
 switch stim_type
     case 'none'
         disp('stimulus=0');
+    case 'white' %as in NIPS paper
+        stim = zeros(N_stim,T);
+        interval = 8;
+        stim(:,1:interval:T) = -abs(randn(N_stim,length(1:interval:T))); % P x T, randomly generated feature vector
+        
     case 'pulses'
         T_pulse=1e3;
         duty_cycle=0.5;

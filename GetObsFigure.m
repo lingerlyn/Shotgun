@@ -4,27 +4,22 @@ clc
 
 % Generate all figures for the paper
 addpath('GenerateSpikes');
+addpath('Plotting')
 addpath('Misc')
+SetDefaultGraphicSettings(1)
 
-% set(0,'DefaultTextInterpreter', 'latex');
-set(0,'DefaultTextInterpreter', 'none');
-set(0,'DefaultAxesFontSize',11)
-set(0,'defaultAxesFontName', 'Times')
-set(0,'defaultTextFontName', 'Times')
-
-subplot = @(m,n,p) subtightplot (m, n, p, [0.03 0.05], [0.2 0.2], [0.1 0.1]);
+subplot = @(m,n,p) subtightplot (m, n, p, [0.005 0.03], [0.2 0.1], [0.1 0.1]);
 % subplot = @(m,n,p) subtightplot (m, n, p, [0.1 0.08], [0.07 0.04], [0.05 0.01]);
 
-title_height=1;
-title_horz=-0.2;
-title_font=11;
+title_pos=[-0.11,0.85];
+title_pos2=[-0.25,0.86];
 figure(1)
 % set(h,'units','normalized','outerposition',[0 0 0.6 1])
 units = 'centimeters';
 set(gcf, 'PaperUnits', units,'Units', units)           
 set(gcf, 'PaperPositionMode', 'manual')
-set(gcf, 'PaperPosition',1.8*[0.1,1, 9, 12])
-set(gcf, 'Position',1.8*[0.1,1, 9, 12])
+set(gcf, 'PaperPosition',[-0.0219   -0.2626   15   22])
+set(gcf, 'Position',[-0.0219   -0.2626   15   22])
 
 
 N=10;
@@ -41,7 +36,7 @@ t_start=1;
 seed_sample=1;
 L=100; %number of histogram bins
 M=5; %show M cases
-a=M; b=3; %subplot grid
+a=M; b=5; %subplot grid
 
 for kk=1:M
 switch kk
@@ -53,76 +48,83 @@ switch kk
         name='Serial';
     case 3
         sample_type=sample_type_set{6};
-        name='Fullly Random';        
+        name='Fully random';        
     case 4
         sample_type=sample_type_set{3};
-        name='Random Blocks';
+        name='Random blocks';
     case 5
         sample_type=sample_type_set{5};
-        name='Double Serial';
+        name='Double serial';
 end 
 
 observations=SampleSpikes(N,T,sample_ratio,sample_type,obs_duration,N_stim,seed_sample,t_start);
 % inputs:
-subplot(a,b,(kk-1)*b+[1 2])
+subplot(a,b,(kk-1)*b+[1 2 3])
 imagesc(tt,[],observations(:,t_show))
 % title('(A)', 'Units', 'normalized', 'Position', [title_horz title_height], 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font) 
 if kk==M
-    xlabel('Time [sec]','fontweight','bold');
+%     xlabel('time [sec]','fontweight','bold');
+        xlabel('time [sec]')
+else
+    set(gca,'xtick',[]);
 end
-ylabel(name,'fontweight','bold');
-% ylabel('cell number');
-% title(name, 'Units', 'normalized', 'fontweight','bold','fontsize',title_font) 
-colormap('gray')
-set(gca,'fontWeight','bold')
-freezeColors
+% ylabel(name);
+ylabel('neuron #');
 
-subplot(a,b,(kk-1)*b+3)
+colormap('gray')
+freezeColors
+letter=['(' char( 2*(kk-1)+'A') ')'] ;
+title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos,'fontweight','bold')
+
+subplot(a,b,(kk-1)*b+[4 5])
 sample_type=sample_type_set{3};
 % observations=SampleSpikes(N,T,sample_ratio,sample_type,obs_duration,N_stim,seed_sample);
 XYn=observations(:,1:(end-1))*(observations(:,2:end))'/T;
 ma=max(XYn(:));
 imagesc(XYn,[0 ma]);
-% title('(B)', 'Units', 'normalized', 'Position', [title_horz title_height], 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font) 
-% title('results in all spike pairs being observed', 'Units', 'normalized', 'fontweight','bold','fontsize',title_font) 
-% xlabel('cell number');
-% ylabel('cell number');
+set(gca,'DataAspectRatio',[1 1 1])
+ylabel('neuron #');
 caxis([0 0.05]);
 % ['random scanning' -   ; 'all spike pairs observed (good)']
-hc=colorbar;
-colorbar_labels = get(hc,'YTickLabel');
-colorbar_labels=[colorbar_labels, [repmat(' ',1,size(colorbar_labels,1)-1), '<']'];
-set(hc,'YTickLabel',colorbar_labels);
-colormap('jet')
- set(gca,'fontWeight','bold')
+letter=['(' char( 2*(kk-1)+1+'A') ')'] ;
+title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos2,'fontweight','bold')
+
+colormap(paruly)
+
 freezeColors
-
-
-% subplot(a,b,(kk-1)*b+5)
-% 
-% bins=linspace(0,1,L);
-% [hist_O,bins]=hist(XYn(:),bins);
-% hist_O=hist_O/sum(hist_O);
-% hist_O(hist_O==0)=nan;
-% bar(bins,hist_O,'k')
-% ylim([0 1]);
-% switch kk
-%     case 1
-%         xlim([-0.05 1.05]);
-%     otherwise
-%         xlim([-0.01 0.25]);
-% end
-% 
-% ylabel('frequency','fontweight','bold')
-% xlabel('pair obs. frequency','fontweight','bold')
+if kk==1
+    hc=colorbar('location','northoutside');
+    cpos = get(hc,'position');
+    cpos=cpos +[-0.045 0.04 0.085 0];
+    set(hc,'position',cpos);
+%     allh=get(gcf, 'Children');
+%     hc=allh(ismember(get(allh,'Tag'),'Colorbar'));
+%         hc=cbfreeze(hc)
 end
 
-% %
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript';
-figure_name='Observations';
+if kk==M
+    set(hc,'XTick',[0, 0.025, 0.05]);    
+%     colorbar_labels = get(hc,'XTickLabel');
+    colorbar_labels=['  0  '; '0.025'; ' 0.05'];
+    colorbar_labels=[colorbar_labels, [repmat(' ',1,size(colorbar_labels,1)-1), '<']'];
+    set(hc,'XTickLabel',colorbar_labels);
+end
+
+
+if kk==M
+    xlabel('neuron #');
+else
+    set(gca,'xtick',[]);
+end
+end
+
+%%
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
+figure_name='Fig1.eps';
     
-set(gcf, 'Color', 'w');    
-set(findall(gcf,'type','text'),'fontWeight','bold')
+set(gcf, 'Color', 'w'); 
+set(findall(gcf,'type','axe'),'box','on')
+% set(findall(gcf,'type','text'),'fontWeight','bold')
 %     set(gca,'fontWeight','bold')
 print(gcf,figure_name, '-painters','-depsc2')
 

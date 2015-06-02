@@ -24,11 +24,11 @@ function [EW, Eb,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(C
 %internal params
 Tol_sparse=0.02; %tolerance for sparsity level
 N=length(rates);
-Tol_FISTA=1e-10; %toleratnce for fista
+Tol_FISTA=1e-6; %toleratnce for fista
 max_iterations=1000;
-last_max_iterations=10*max_iterations;
-lambda0=1e-2; %initial value  of regularization constant
-rho=1e1; % parameter for exponential search. should be larger then 1
+last_max_iterations=max_iterations;
+lambda0=0.002; %initial value  of regularization constant
+rho=2; % parameter for exponential search. should be larger then 1
 use_sampling=0; %use sampling to calculate Gaussian integral. Typically slower, so don't use
 show_progress=0; %show figures with progress
 show_w=0; %#ok show figures with W (estimate vs true) 
@@ -39,7 +39,10 @@ CXX=full(CXX);
 CXY=full(CXY);
 rates=full(rates);
 
-L=5*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
+V=-diag(pi*(rates.*log(rates)+(1-rates).*log(1-rates))/8); %for the gradient
+V(isnan(V))=0; %take care of 0*log(0) cases...
+L=200*max(V(:))*max(eig(CXX)); %lipshitz constant - an educated guess. make sure this is large enough to ensure convergence
+% L=5*max(eig(CXX)); %lipshitz constant
 
 %initialize FISTA
 % x=zeros(N);%*sparse(N,N);
@@ -105,11 +108,13 @@ for kk=1:reweighted_L1_Reps
     MAE=[]; %relative mean absolute error of the current estimate, in comparsion to the previous estimate
 
     while FISTA_cond
+      
         t=t_next;
         x_prev=x;
         Eb_prev=Eb;       
         mean_U=y*rates+z;
         var_U=diag(y*CXX*y');
+%         var_U(var_U<0)=0; %correct for numerical errors;
         CXX_diag=CXX(eye(N)>0.5);
         mean_U_cavity=bsxfun(@plus,mean_U,y*(CXX*diag((1-rates)./CXX_diag)));
         var_U_cavity=bsxfun(@plus,var_U,-((y*CXX).^2)*diag(1./CXX_diag));
@@ -212,11 +217,13 @@ for kk=1:reweighted_L1_Reps
                 warning('FISTA max iteration reached');
                 break    
             end     
+                   
         end
 
         if nnz(x(eye(N)<0.5))==0 %if everything is zero except diagonal, quite
             break        
         end
+
     end
     %%% 
         

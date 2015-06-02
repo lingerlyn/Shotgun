@@ -1,6 +1,4 @@
 function [EW, Eb]=EstimateA_L1_logistic_fullyobserved(CXX,CXY,rates,spikes,sparsity,N_stim,pen_diag,warm)
-% not working well... not sure why.
-
 % Algorithm Implements FISTA algorithm by Beck and Teboulle 2009 for L1 linear regression
 % INPUTS: 
 % CXX - covariance
@@ -15,11 +13,11 @@ function [EW, Eb]=EstimateA_L1_logistic_fullyobserved(CXX,CXY,rates,spikes,spars
 % Eb: MAP estimate of weights
 
 %params
-max_iterations=1000;
-Tol_sparse=0.05; %tolerance for sparsity level
+max_iterations=5000;
+Tol_sparse=0.02; %tolerance for sparsity level
 N=length(rates);
 T=size(spikes,2);
-Tol_FISTA=1e-3; %toleratnce for fista
+Tol_FISTA=1e-6; %toleratnce for fista
 
 %initialize FISTA
 x=0*CXY';
@@ -27,8 +25,8 @@ y=x;
 L=10*2*max(rates)*max(eig(CXX)); %lipshitz constant - and educated guess. make sure this is large enough to ensure convergence
 
 %initialize binary search
-lambda_high=max(1e8,1e8*L); %maximum bound for lambda
-lambda_low=min(1e-8,1e-8*L);  %minimum bound for lambda
+lambda_high=1e-2; %max(1e8,1e8*L); %maximum bound for lambda
+lambda_low=1e-4;%min(1e-8,1e-8*L);  %minimum bound for lambda
 loop_cond=1;  %flag for while llop
 
 while  loop_cond %binary search for lambda that give correct sparsity level
@@ -57,6 +55,7 @@ FISTA_cond=1;
 iteration=0;
 
 while FISTA_cond
+    
     t=t_next;
     x_prev=x;
     Eb_prev=Eb;
@@ -73,6 +72,7 @@ while FISTA_cond
     z=Eb+((t-1)/t_next)*(Eb-Eb_prev);   
     FISTA_cond=(mean(abs(x(:)-x_prev(:)))>Tol_FISTA);
     iteration=iteration+1;
+    
     if (iteration>max_iterations);
         break
         warning('FISTA max iteration reached');

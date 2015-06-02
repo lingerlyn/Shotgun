@@ -24,7 +24,7 @@ for nn=1:N
     %% Re-weighted L1
 %     addpath('utilities/spgl1-1.8'); 
     resparse_eps = 1e-1;
-    N_resparse=2; % number of times to resparse the solution using re-weighted l1-norm
+    N_resparse=1; % number of times to resparse the solution using re-weighted l1-norm
 
     for ii = 1:N_resparse
         if ii>1        
@@ -33,10 +33,10 @@ for nn=1:N
         else
             options = spgSetParms('project',@NormL1NN_project ,'primal_norm', @NormL1NN_primal,'dual_norm',@NormL1NN_dual,'verbosity',0);
         end    
-        tic
+%         tic
         noise_residual=P{nn}.sn*sqrt(T);
         [sp_temp,~,~,~] = spg_bpdn( Gx, Y(nn,:)', noise_residual,options);
-        toc
+%         toc
         spikes(nn,:) = sp_temp(1:T);
         b(nn)=sp_temp(end);
     end

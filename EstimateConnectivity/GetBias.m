@@ -9,7 +9,7 @@ function bias = GetBias( W,Cxx,rates)
 %   Detailed explanation goes here
 % According to Poisson approximation
 mat=0.5*W*Cxx*W';
-bias=log(rates)-W*rates-mat(eye(size(mat))>0.5);
+bias=sqrt(1+(pi*8)*mat)*log(rates./(1-rates))-W*rates;
 
 end
 

@@ -21,6 +21,8 @@ end
 centers=[];
 
 switch network_type
+    case 'NIPS_network'
+        A=construct_weights_combi(N);
     case 'combi'
         lr_conn = 0.2;
         A=construct_weights_combi(N, spar,lr_conn);
@@ -28,6 +30,8 @@ switch network_type
         A=construct_weights_probabilistic(N, spar,inhib_frac,weight_dist);
     case 'realistic'        
         [A,centers]=construct_weights_realistic(N,inhib_frac,spar);
+    case 'realistic+1'        
+        [A,centers]=construct_weights_realistic_plus1(N,inhib_frac,spar);
     case 'balanced'   
         lr_conn = 0.2;
         A = construct_bal_weights(N,spar,lr_conn);     
@@ -85,6 +89,10 @@ end
                 ind_range=((~ind_low).*(~ind_high))>0.5;
                 A(ind_range,ind_range)=5*A(ind_range,ind_range);
         end
+    elseif strcmp(stim_type,'white')
+        temp = randn(N_stim,N); % P x N_stim % filter for feature vector
+        sum_sq = sqrt(sum(temp.^2,1));
+        G = (abs(temp./repmat(sum_sq,N_stim,1)))';
     else
 %         G=rand(N,N_stim)<spar;
         G=ones(N,N_stim);
@@ -92,6 +100,10 @@ end
 %     G=zeros(N,N_stim);
 %     G(1,1)=1;
 %     G(2,2)=1;   
+
+    if and(strcmp(network_type,'realistic+1'),N_stim>0)
+        error('Incompatible in current code: N_stim>0 with conn_type="realistic+1"')
+    end
     W=[A, G; zeros(N_stim,N_stim+N)]; 
 
 end

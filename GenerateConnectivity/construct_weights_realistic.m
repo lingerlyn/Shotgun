@@ -1,6 +1,6 @@
 function [W,centers] = construct_weights_realistic(N,inhib_frac,spar)
 %CONSTRUCT_WEIGHTS returns the weight matrix such that
-% connectivity is randomly drawn from some diftribution
+% connectivity is randomly drawn from some distribution
 
 %INPUT
 % N = total number of neurons
@@ -29,7 +29,7 @@ m_EI=1;
 m_II=0.8*m_EI;
 m_EE=m_EI*inhib_frac/(1-inhib_frac);
 m_IE=0.8*m_EE;
-v=m_EE.^2;      
+v=m_EE.^2;
 
 for ii=1:N
     sgn=sgn_array(ii);

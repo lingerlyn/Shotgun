@@ -9,8 +9,9 @@ function [eta_out, beta]=Estimate_rates_Gibbs_Metropolized(W,b,eta_obs,eta_sampl
 % eta -sampled spikes
 % beta -  predicted average firing rates
 %parameters
-Gibbs_Reps_start=0; %sample to start from
+Gibbs_Reps_start=30; %sample to start from
 Gibbs_Reps=Gibbs_Reps_start+1;
+disp(['Sampling unobserved spikes...'])
 
 %initialize
 N=size(eta_sample,1);
@@ -34,6 +35,9 @@ B=repmat(b,1,T/2);
 
 %Maybe metropolized version will be better, but what is the proposal density?
 for rep=1:Gibbs_Reps
+    if ~mod(rep,floor(Gibbs_Reps/10))
+        disp([num2str(100*rep/Gibbs_Reps,2) '%'])
+    end
     eta_stat=rand(N,1)<beta_stat;
     alpha_odd1=W*[eta_stat eta_even(:,1:(end-1))]+B-W.'*(1-eta_even); 
     beta_odd=alpha_odd1*0;

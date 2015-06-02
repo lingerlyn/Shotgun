@@ -25,9 +25,19 @@ else
 end
 
 if params.spike_gen.CalciumObs==1
-    Calcium_str=['_CalciumObs'];
+    if params.calcium_model.sn/params.calcium_model.amp>0.5
+        Calcium_str=['_CalciumObsVeryHighNoise'];
+    elseif params.calcium_model.sn/params.calcium_model.amp>0.3
+        Calcium_str=['_CalciumObsHighNoise'];
+    else
+        Calcium_str=['_CalciumObs'];
+    end
 else
+    if params.connectivity.target_rates==0.05
     Calcium_str=[];
+    else
+        Calcium_str=['_noCalcium'];
+    end
 end
 
 
@@ -37,6 +47,8 @@ elseif strcmp(params.conn_est_flags.est_type,'FullyObservedGLM')
     est_type_str=['_FullyObservedGLM'];
 elseif strcmp(params.conn_est_flags.est_type,'Cavity')   
     est_type_str=['_Cavity'];
+elseif strcmp(params.conn_est_flags.est_type,'EM')   
+    est_type_str=['_EM'];
 else
     est_type_str=[];
 end
