@@ -1,30 +1,30 @@
 function params=SetParams()
 
 %% Network parameters
-N=1.1e3; %number of neurons
+N=50; %number of neurons
 N_stim=0; %number of stimulation sources
-N_unobs=round(0.2*N); %number of neurons completely unobserved 
+N_unobs=0*round(0.2*N); %number of neurons completely unobserved 
 N=N_unobs+N;
 spar =0.2; %sparsity level - set as empty for default value in realistic conn_type; 
-bias=-0*ones(N,1)+0.1*randn(N,1); %bias  - if we want to specify a target rate and est the bias from that instead
-target_rates=[0.05]; %set as empty if you want to add a specific bias.
+bias=-0.5*ones(N,1)+0.1*randn(N,1);  %bias  - if we want to specify a target rate and est the bias from that instead
+target_rates=[]; %set as empty if you want to add a specific bias.
 seed_weights=1; % random seed
-weight_scale=1;%1/sqrt(N*spar*2); % scale of weights  
+weight_scale=0.8;%1/sqrt(N*spar*2); % scale of weights  
 conn_types={'realistic', 'realistic+1','rand','common_input', 'balanced', 'balanced2','NIPS_network'};
-conn_type=conn_types{2};
+conn_type=conn_types{4};
 inhib_frac=0.2;
 weight_dist_types={ 'lognormal','uniform'};
 weight_dist=weight_dist_types{1}; %
 connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);
 
 %% Spike Generation parameters
-T=2e6; %timesteps
+T=1e8; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson','LIF'};
 neuron_type=neuron_type_set{2}; 
 sample_type_set={'continuous','spatially_random','prob','double_continuous'};
-sample_type=sample_type_set{1};
+sample_type=sample_type_set{2};
 stim_type_set={'pulses','delayed_pulses','sine','Markov','white'};
 stim_type=stim_type_set{5};
 timescale=1; %timescale of filter in neuronal type 'logistic_with_history' - does not affect anything in other neuron models
@@ -46,7 +46,7 @@ est_type=est_type_set{2};
 % default values I used in paper:
 % sn=0.2;  % observation noise level
 % amp=1; % spike amplitude
-% baseline=0.3;  % baseline
+% baseline=0.3;  % baseline (does not matter)
 % g=0.97; % calcium rate (AR model poles - can be a vector)
 % est_type = GreedyAccurate
 calcium_model=v2struct(sn,amp,baseline,g,est_type);
@@ -57,7 +57,7 @@ pen_dist=0; %penalize distance in fista
 warm=1; %use warm starts in fista
 est_type_set={'ELL','Cavity','Gibbs','FullyObservedGLM','EM'};
 est_type=est_type_set{2};
-est_spar=[];% estimated sparsity level. If empty, we just use the true sparsity level
+est_spar=1;% estimated sparsity level. If empty, we just use the true sparsity level
 conn_est_flags=v2struct(pen_diag,pen_dist,warm,est_type,est_spar);
 
 %% Sufficeint Statistics Estimation flags - obsolete

@@ -18,18 +18,18 @@ isLIF=0; %are we using LIF?
 
 figure(1098)
 subplot = @(m,n,p) subtightplot (m, n, p, [0.01 0.085], [0.08 0.03], [0.06 0.002]);
-observations_ratios= [1,0.1,0.01,0.001];
+observations_ratios= [1,0.1,0.01];
 dot_size=3.8;
-M=50;
-ind_array=round(9503*1.1+(-999:0));
-ind_array=ind_array(randi(length(ind_array),100,1));
+M=1000;
+ind_array=round(10626+(-1500:0));
+ind_array=ind_array(randi(length(ind_array),M,1));
 shiftbar=[0.1,0,0,0];
 shiftpos= [0.015,0,0,0]; %shift left column becauase of (aspect ratio)
 units = 'centimeters';
 set(gcf, 'PaperUnits', units,'Units', units)           
 set(gcf, 'PaperPositionMode', 'manual')
-set(gcf, 'PaperPosition',[-0.0219   -0.2626   17   19])
-set(gcf, 'Position',[-0.0219   -0.2626   17   19])
+set(gcf, 'PaperPosition',[-0.0219   -0.2626   17   14])
+set(gcf, 'Position',[-0.0219   -0.2626   17   14])
 
 
 fontsize2=12; 
@@ -70,43 +70,27 @@ if mi>-ma
 elseif ma<-mi
     ma=-mi;
 end
-% mi=-1;ma=1;
 mi2=min(W(:))*1.2;
 ma2=max(W(:))*1.2;
 
-subplot(L+1,K,[1 2])    
-% imagesc(W(1,ind_array),[mi ma]);
-
 [~,idx]=sort(W(1,ind_array));
 ind_array=ind_array(idx);
-plot(W(1,ind_array),'k');
-% set(gca,'xtick',[],'ytick',[])
-set(gca,'xtick',[],'ylim',[mi ma]);
-ylabel('true W','fontsize',fontsize2)
-% colormap(blue_red_map2)
-% freezeColors
-originalSize = get(gca, 'Position');
-% h=colorbar('location','eastoutside');
-% h=cbfreeze(h);
-% cpos = get(h,'position');
-% cpos = cpos + shiftbar; 
-% set(h,'position',cpos,'ylim', [mi ma])
-set(gca, 'Position',originalSize + shiftpos)
-title('(A)','color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos,'fontweight','bold')
 
 %%
 for ii=L:-1:1
 load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T)  LIF_str  '_continuous_Cavity_SingleNeuron.mat'],'EW')
 
-    EW=EW/std(EW(:))*std(W(:));
+%     EW=EW/std(EW(:))*std(W(:));
        
-    subplot(L+1,K,K*ii+[1 2])    
+    subplot(L,K,K*(ii-1)+[1 2])    
 %     imagesc(EW(1,ind_array),[mi ma]);
-    plot(EW(1,ind_array),'k');
+    xx=1:length(ind_array);
+    plot(xx,EW(1,ind_array),'r',xx,W(1,ind_array),'b');
 %     set(gca,'xtick',[],'ytick',[])
     set(gca,'xtick',[],'ylim',[mi ma]);
     if ii==L
-        set(gca,'xtick',10:20:100)
+        set(gca,'xtick',linspace(0,M,5))
+        xlabel('neuron #','fontsize',fontsize2)
     end
     h=colorbar;
     set(h, 'ylim', [mi ma])
@@ -120,12 +104,11 @@ load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str
     pos = get(gca,'position');
     pos = pos +  shiftpos; 
     set(gca, 'Position',pos)
-    letter=['(' char(b*(ii-1)+1+'A') ')'] ;
+    letter=['(' char(b*(ii-1)+'A') ')'] ;
     title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos,'fontweight','bold')
+   
 
-    
-
-    subplot(L+1,K,K*ii+[5 6])
+    subplot(L,K,K*(ii-1)+[5 6])
     A_ind=linspace(mi2,ma2,100);
     plot(A_ind,A_ind,'k--','linewidth',1);
     hold all
@@ -142,10 +125,10 @@ else
     set(gca,'xtick',[]);
 end
     ylabel('inferred weights','fontsize',fontsize2)
-letter=['(' char(b*(ii-1)+3+'A') ')'] ;
+letter=['(' char(b*(ii-1)+2+'A') ')'] ;
     title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos3,'fontweight','bold')
     
-    subplot(L+1,K,K*ii+[3 4])
+    subplot(L,K,K*(ii-1)+[3 4])
     mi3=-2;%min([W(:) ;EW(:)]);
     ma3=2;%max([W(:) ;EW(:)]);
     bins=linspace(mi3,ma3,L_bins);
@@ -167,14 +150,14 @@ letter=['(' char(b*(ii-1)+3+'A') ')'] ;
         set(gca,'xtick',[]);
     end
     ylabel('count','fontsize',fontsize2)
-    letter=['(' char(b*(ii-1)+2+'A') ')'] ;
+    letter=['(' char(b*(ii-1)+1+'A') ')'] ;
     title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos2,'fontweight','bold')
 %     if ii==1
 %         h=legend('W','$\hat{W}$')
 %         set(h,'Interpreter','latex','fontsize',fontsize,'location','northwest','orientation','horizontal')
 %     end
     
-   subplot(L+1,K,K*ii+7)
+   subplot(L,K,K*(ii-1)+7)
    [R,correlation, zero_matching,sign_matching] = GetWeightsErrors( W,EW );
 %    [AUROC, ROC] = GetROCforW(quality)
     % bar( [R,correlation, zero_matching,sign_matching,AUROC(1),AUROC(2)] );    
@@ -187,11 +170,12 @@ letter=['(' char(b*(ii-1)+3+'A') ')'] ;
     else
         set( gca, 'XTickLabel',[]); 
     end
-    letter=['(' char(b*(ii-1)+4+'A') ')'] ;
+    letter=['(' char(b*(ii-1)+3+'A') ')'] ;
     title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos4,'fontweight','bold')
 
 
 end
- 
-% target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-% Export2Folder(['SingleNeuron.eps'],target_folder) 
+
+%  target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
+Export2Folder(['Fig9.eps'],target_folder) 

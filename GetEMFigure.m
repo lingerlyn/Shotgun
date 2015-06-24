@@ -83,4 +83,4 @@ letter=['(' char(2*(ii-1)+1+'A') ')'] ;
 title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos2,'fontweight','bold')
 end
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-Export2Folder(['Fig9.eps'],target_folder) 
+Export2Folder(['Fig10.eps'],target_folder) 

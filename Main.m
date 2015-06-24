@@ -8,7 +8,7 @@ addpath('GenerateConnectivity')
 addpath('GenerateSpikes');
 addpath(genpath('CalciumMeasurements'));
 
-parameter_scan_array=[0.04,0.01,0.001];
+parameter_scan_array=0.3;
 
 for kk=1:length( parameter_scan_array)
 %% Set params - later write a function for several default values
@@ -25,6 +25,9 @@ N_obs=N-N_unobs;
 tic
 [W,centers]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
 centers=centers(N_unobs+1:end,:); % remove unobserved part
+
+% W=fliplr(flipud(W));
+
 RunningTime.GetWeights=toc;
 W=sparse(W);
     if ~isempty(target_rates)
@@ -53,7 +56,7 @@ addpath(genpath('CalciumMeasurements'));
 
 [T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration,CalciumObs]=v2struct(params.spike_gen);
 
-memory_threshold=1e10;  %maximial size of array to allow
+memory_threshold=1e8;  %maximial size of array to allow
 splits=ceil((T*N^2)/memory_threshold)
 mY=0; mYn=0;
 XX=0; XXn=0;
@@ -202,15 +205,16 @@ switch est_type
         [amp, Ebias2]=logistic_ELL(rates,EW,Cxx,Cxy);
         EW2=diag(amp)*EW;
     case 'Cavity'
-%         [EW,Ebias,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_obs,centers);     
+
+   [EW,Ebias,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_obs,centers);     
+    EW2=EW3;
+              
 %         EW3=EstimateA_L1_logistic_Accurate(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,warm);              
-          EW=EW3;
-          EW2=EW3;
 %         [amp, Ebias2]=logistic_ELL(rates,EW3,Cxx,Cxy);
 %         EW2=diag(amp)*EW3;
 %         EW2=EstimateA_MLE_cavity(Cxx,Cxy,rates);        %MLE
 %         mask=~~EW;
-%         [EW2,Ebias2,RMSE]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,1,N_stim,pen_diag,warm,is_spikes,W_now);                       
+      
 %         EW2=EW2.*mask;
 %         [amp, Ebias2]=logistic_ELL(rates,EW2,Cxx,Cxy);
 %         EW2=diag(amp)*EW2;

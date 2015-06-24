@@ -25,16 +25,18 @@ subplot = @(m,n,p) subtightplot (m, n, p, [0.07 0.05], [0.12 0.04], [0.08 0.01])
 blue_red_map= darkb2r(-1,1);
 colormap(blue_red_map)
 
-load('Run_N=50_obs=1_T=5000000')
+% load('Run_N=50_obs=1_T=5000000')
+load('Run_N=50_obs=0.3_T=100000000_Cavity_noCalcium.mat')
 N=params.connectivity.N;
 
-b=(V*Cxx)^(-1);
-a=Cxy;
-rates=V(eye(N)>0.5);
-EW_obs=a'*b;
-[amp, ~]=logistic_ELL(rates,EW_obs,Cxx,Cxy);
-% amp=1
-EW_obs=diag(amp)*EW_obs;
+% b=(V*Cxx)^(-1);
+% a=Cxy;
+% rates=V(eye(N)>0.5);
+% EW_obs=a'*b;
+% [amp, ~]=logistic_ELL(rates,EW_obs,Cxx,Cxy);
+% % amp=1
+% EW_obs=diag(amp)*EW_obs;
+% EW_obs=EW;
 mi1=min(W(:));ma1=max(W(:));
 if mi1>-ma1
     mi1=-ma1;
@@ -67,37 +69,9 @@ colorbar
 title('(B)', 'Units', 'normalized', 'Position',title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font) 
 set(gca,'DataAspectRatio',[1 1 1])
 
-
-
-b=(V(1:K,1:K)*Cxx(1:K,1:K))^(-1);
-a=Cxy(1:K,1:K);
-rates=V(eye(N)>0.5);
-EW_unobs=a'*b;
-[amp, Ebias2]=logistic_ELL(rates(1:K),EW_unobs,Cxx(1:K,1:K),Cxy(1:K,1:K));
-% amp=1;
-EW_unobs=diag(amp)*EW_unobs;
-
-
-
-subplot(2,2,4)
-imagesc(EW_unobs,[mi ma])
-% title('infered weights - subset, with hidden neurons')
-title('(D)', 'Units', 'normalized', 'Position', title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font)
-set(gca,'DataAspectRatio',[1 1 1])
- xlabel('neuron #');
-colorbar
-
-load('Run_N=50_obs=0.3_T=5000000.mat')
-b=(V*Cxx)^(-1);
-a=Cxy;
-rates=V(eye(N)>0.5);
-EW_obs=a'*b;
-[amp, Ebias2]=logistic_ELL(rates,EW_obs,Cxx,Cxy);
-% amp=1
-EW_obs=diag(amp)*EW_obs;
-
 subplot(2,2,3)
-imagesc(EW_obs(1:K,1:K),[mi ma])
+EW_obs=EW(1:K,1:K);
+imagesc(EW_obs,[mi ma])
 % title('infered weights - subset, with shotgun')
 title('(C)', 'Units', 'normalized', 'Position',title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font) 
 set(gca,'DataAspectRatio',[1 1 1])
@@ -105,8 +79,20 @@ set(gca,'DataAspectRatio',[1 1 1])
   xlabel('neuron #');
 colorbar
 
+load('Run_N=16_obs=1_T=100000000_Cavity_noCalcium.mat')
+
+EW_unobs=EW;
+subplot(2,2,4)
+imagesc(EW,[mi ma])
+% title('infered weights - subset, with hidden neurons')
+title('(D)', 'Units', 'normalized', 'Position', title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font)
+set(gca,'DataAspectRatio',[1 1 1])
+ xlabel('neuron #');
+colorbar
+
 %%
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2'
+% target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2'
+target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\Revision2'
 Export2Folder(['Fig3.eps'],target_folder) 
 
 %%
@@ -121,3 +107,22 @@ std(EW_unobs(~W(1:K,1:K)))
 % plot(t,U(1,t),t,U(2,t))
 % subplot(2,1,2)
 % plot(t,spikes(1,t),'xb',t,spikes(2,t),'og')
+
+%% Histograms of off diagonals in panels C and D
+% 
+figure
+title_pos=[0.1,0.8];
+temp=EW_obs(1:K,1:K);
+temp=temp(eye(K)<0.5);
+subplot(2,1,1)
+hist(temp,100)
+xlim([mi,ma]/3)
+title('(C)', 'Units', 'normalized', 'Position', title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font)
+
+
+temp=EW_unobs(1:K,1:K);
+temp=temp(eye(K)<0.5);
+subplot(2,1,2)
+hist(temp,100)
+xlim([mi,ma]/3)
+title('(D)', 'Units', 'normalized', 'Position', title_pos, 'HorizontalAlignment', 'right','fontweight','bold','fontsize',title_font)
