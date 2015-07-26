@@ -8,12 +8,14 @@ addpath('GenerateConnectivity')
 addpath('GenerateSpikes');
 addpath(genpath('CalciumMeasurements'));
 
-parameter_scan_array=0.3;
+parameter_scan_array=1;
 
 for kk=1:length( parameter_scan_array)
-%% Set params - later write a function for several default values
+%% Change params inside SetParams function
 params=SetParams;
-params.spike_gen.sample_ratio= parameter_scan_array(kk);
+
+%% Uncomment for parameter scans 
+% params.spike_gen.sample_ratio= parameter_scan_array(kk);
 % params.connectivity.N_stim=parameter_scan_array(kk);
 % params.spike_gen.N_stim=parameter_scan_array(kk);
 
@@ -74,7 +76,6 @@ for iter=1:splits
         T_split=T-(splits-1)*floor(T/splits);
     end
     
-    
     verbose=1;
     
     if iter==1
@@ -103,7 +104,7 @@ for iter=1:splits
     sampled_spikes=sparse(observations.*spikes);
     RunningTime.SampleSpikes=RunningTime.SampleSpikes+toc;
 
-    %% Estimate sufficeint statistics
+    %% Estimate sufficeint statistics - previous version (without chopping up data series)
 %     addpath('EstimateStatistics')
 %     [glasso,pos_def,restricted_penalty,est_spar,bin_num]=v2struct(params.stat_flags);
 % 
@@ -128,6 +129,7 @@ for iter=1:splits
 %     RunningTime.GetStat=toc;
 %     % Ebias=GetBias( EW,Cxx,rates);
         
+%% Estimate sufficeint statistics 
         tic
         sampled_spikes_obs=sampled_spikes(N_unobs+1:end,:);
         observations_obs=observations(N_unobs+1:end,:);
@@ -255,8 +257,7 @@ switch est_type
 %                 [Cxx,Cxy ] = PosProj( Cxx,Cxy );
                  
                 [EW_out,Ebias2,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_obs,centers); 
-      
-                
+ 
                 if pp==1
                     EW2=EW_out;
                 elseif pp==2                   
@@ -327,5 +328,3 @@ save(file_name,'W_full','bias_full','W','bias','centers','EW','EW2','EW3','quali
 end
 %% Plot
 Plotter
-
-% CommonInputPlotC

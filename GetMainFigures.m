@@ -12,7 +12,7 @@ addpath('GenerateSpikes');
 SetDefaultGraphicSettings(0)
 T=2e6;
 T_view=3e2;
-N=1e3;
+N=50;
 dt=1e-2; %100 Hz imaging frame rate
 isLIF=0; %are we using LIF?
 
@@ -27,8 +27,8 @@ if N==50
     units = 'centimeters';
     set(gcf, 'PaperUnits', units,'Units', units)           
     set(gcf, 'PaperPositionMode', 'manual')
-    set(gcf, 'PaperPosition',[-0.0219   -0.2626   17   19])
-    set(gcf, 'Position',[-0.0219   -0.2626   17   19])
+    set(gcf, 'PaperPosition',[-0.0219   -0.2626   17   18])
+    set(gcf, 'Position',[-0.0219   -0.2626   17   18])
 elseif N==1e3;
     subplot = @(m,n,p) subtightplot (m, n, p, [0.008 0.08], [0.08 0.03], [0.06 0.005]);
     observations_ratios= [1,0.2,0.1];
@@ -46,10 +46,10 @@ end
 
 fontsize2=12; 
 L_bins=30; %number of bins in the weight histogram
-title_pos=[-0.22 0.9]; % title position for colmun 1
-title_pos2=[0.1 0.9]; % title position for colmun 2
-title_pos3=[0.1 0.9]; % title position for colmun 3
-title_pos4=[-0.7 0.9]; % title position for colmun 4
+title_pos=[-0.25 0.85]; % title position for colmun 1
+title_pos2=[0.1 0.85]; % title position for colmun 2
+title_pos3=[0.1 0.85]; % title position for colmun 3
+title_pos4=[-0.7 0.85]; % title position for colmun 4
 %% Figure 1 - Toy model 
 % In this figure:
 % N=50, 
@@ -252,7 +252,7 @@ letter=['(' char(b*(ii-1)+3+'A') ')'] ;
 
 end
 % 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision3';
 if isLIF
     Export2Folder([ 'Fig5.eps'],target_folder) 
 else

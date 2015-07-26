@@ -1,7 +1,7 @@
-function params=SetParams()
+function params=SetParamsNetworkStats()
 
 %% Network parameters
-N=1e4; %number of neurons
+N=1e3; %number of neurons
 N_stim=0; %number of stimulation sources
 N_unobs=round(0.2*N); %number of neurons completely unobserved 
 N=N_unobs+N;
@@ -18,7 +18,7 @@ weight_dist=weight_dist_types{1}; %
 connectivity=v2struct(N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates,N_unobs);
 
 %% Spike Generation parameters
-T=1e3; %timesteps
+T=1e4; %timesteps
 T0=1e2; %burn-in time 
 sample_ratio=1; %fraction of observed neurons per time step
 neuron_type_set={'logistic','logistic_with_history','linear','linear_reg', 'sign','Poisson','LIF'};

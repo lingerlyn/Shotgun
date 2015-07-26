@@ -21,7 +21,7 @@ set(0,'DefaultTextInterpreter', 'tex');
 a=3; b=4;
 subplot = @(p) subtightplot (a,b, p, [0.06 0.08], [0.06 0.05], [0.1 0.02]);
 
-params=SetParams();
+params=SetParamsNetworkStats();
 if params.spike_gen.T>1e4
     params.spike_gen.T=1e4;
 end
@@ -37,9 +37,7 @@ set(gcf, 'PaperPositionMode', 'manual')
 set(gcf, 'PaperPosition',[-0.0219   -0.2626   17   18])
 set(gcf, 'Position',[-0.0219   -0.2626   17   18])
 %%  W
-
 if regenerate_data
-
     [N,spar,inhib_frac,weight_dist,bias,seed_weights, weight_scale, conn_type,N_stim,target_rates]=v2struct(params.connectivity);
     [W,~]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,params.spike_gen.stim_type,params.sbm);
     if ~isempty(target_rates)
@@ -80,22 +78,23 @@ title('(B)','color', 'k', 'fontweight', 'bold', 'Units', 'normalized','position'
 xlim([mi ma])
 box('off')
 %% Plot Correlations
-load('Run_N=1000_obs=1_T=2000000_Cavity.mat','Cxy','Cxx');
 subplot(8)
-vars=sqrt(diag(Cxx));
-corr_delay=Cxy./(vars*vars');
-corr_delay(eye(size(corr_delay))>0.5)=0; 
+load('Run_N=1000_obs=1_T=2000000_Cavity.mat','Cxy','Cxx');
+Cov=2*Cxx+Cxy+Cxy'; %Schniedmann is using 20ms timebins (we have 10ms)
+vars=sqrt(diag(Cov));
+cor=Cov./(vars*vars');
+cor(eye(size(cor))>0.5)=0; 
 % corr=Cxx./(vars*vars');
 % imagesc(corr_delay)
-[hist_values,bins]=hist(corr_delay(~~(corr_delay(:))),30);
+[hist_values,bins]=hist(cor(~~(cor(:))),30);
 % C=sum(hist_values);
 % hist_values=hist_values/C;
 semilogy(bins,hist_values, 'k')
 xlim([-0.1 bins(end)])
 % ylim([1e-6 1])
 % set(gca,'ytick',[1e-6 1e-4 1e-2 1])
-ylim([1 1e6])
-set(gca,'ytick',[1 1e2 1e4 1e6])
+ylim([min(hist_values) 1e6])
+set(gca,'ytick',[1e1 1e3 1e5])
 ylabel('count');
 xlabel('correlation');
 title('(C)','color', 'k', 'fontweight', 'bold', 'Units', 'normalized','position',title_pos,'fontsize',fontsize)
@@ -108,6 +107,7 @@ if regenerate_data
     [T,T0,sample_ratio,sample_type,seed_spikes,seed_sample,N_stim,stim_type, neuron_type,timescale,obs_duration]=v2struct(params.spike_gen);
     s0=[];verbose=1;
     spikes=GetSpikes(W,bias,T,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbose);
+    spikes_shuffled=spikes;
     for ii=1:N
         spikes_shuffled(ii,:)=spikes(ii,randperm(T)); %#ok
     end
@@ -198,5 +198,5 @@ box('off')
 
 %%
 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-Export2Folder(['Fig2.eps'],target_folder) 
+% target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision3';
+% Export2Folder(['Fig2.eps'],target_folder) 
