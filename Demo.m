@@ -10,7 +10,7 @@ M=1e6;
 
 %% Generate network connectivity
 addpath('GenerateConnectivity')
-% connectivity parameters (for details see "SetParams.m)
+% connectivity parameters (for details see "SetParams.m")
 conn_type='realistic'; spar=0.1;inhib_frac=0.2;weight_dist='lognormal';seed_weights=2;weight_scale=1;N_stim=0;
 % connectivity matrix
 [W,~]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,[],[]);
@@ -20,7 +20,7 @@ b=-3+0.1*randn(N,1);
 
 %% Generate spikes
 addpath('GenerateSpikes');
-% spiking parameters (for details see "SetParams.m)
+% spiking parameters (for details see "SetParams.m")
 T0=1e2;seed_spikes=1;neuron_type='logistic_with_history';N_stim=0; stim_type='pulses';timescale=1;s0=[],verbose=1;
 % Get Spikes
 S=GetSpikes(W,b,M,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbose);
@@ -44,9 +44,9 @@ Cxy=XY./(XYn+eps)-rates*rates'; %estimate cross-covariance
 %% Estimate connectivity
 est_spar=spar; %sparsity target (set here to correct sparisty level -in general this should estiamted from data)
 N_stim=0;  %number of external stimuli
-pen_diag=0;pen_dist=0; warm=1;W_obs=[]; centers=[];  % (for details see "SetParams.m)
+pen_diag=0;pen_dist=0; warm=1;W_obs=[]; centers=[];  % (for details see "SetParams.m")
 
-%Main algorithm of paper
+%Main algorithm of the paper
 [EW,Ebias,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_obs,centers);     
 
 %% Plot
