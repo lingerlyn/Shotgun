@@ -5,7 +5,7 @@ clc
 % dimension
 N=100; 
 % # time instants
-M=1e6; 
+M=1e5; 
 
 
 %% Generate network connectivity
@@ -46,7 +46,7 @@ est_spar=spar; %sparsity target (set here to correct sparisty level -in general 
 N_stim=0;  %number of external stimuli
 pen_diag=0;pen_dist=0; warm=1;W_obs=[]; centers=[];  % (for details see "SetParams.m")
 
-%Main algorithm of the paper
+%Main algorithm of the dpaper
 [EW,Ebias,quality,error_rates,lambda_path]=EstimateA_L1_logistic_cavity(Cxx,Cxy,rates,est_spar,N_stim,pen_diag,pen_dist,warm,W_obs,centers);     
 
 %% Plot
