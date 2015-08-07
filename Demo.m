@@ -1,3 +1,5 @@
+% Run this script for a simple demo of the algorithm
+
 clear all
 close all
 clc

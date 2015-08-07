@@ -1,3 +1,5 @@
+% Run this script to explore more options
+
 clear all
 % close all
 clc
