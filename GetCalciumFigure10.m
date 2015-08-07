@@ -184,5 +184,5 @@ letter=['(' char(ii+4+'A') ')'] ;
 title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos4,'fontweight','bold')
 % title('F','color', 'k', 'fontweight', 'bold', 'Units', 'normalized', 'interpreter','none','position',title_pos,'fontsize',fontsize)
 end
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-Export2Folder(['Fig11.eps'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction';
+Export2Folder(['Fig10.tif'],target_folder) 

@@ -80,9 +80,7 @@ ind_array=ind_array(idx);
 for ii=L:-1:1
 load(['Run_N=' num2str(N) '_obs=' num2str(observations_ratios(ii)) '_T=' num2str(T)  LIF_str  '_continuous_Cavity_SingleNeuron.mat'],'EW')
 
-%     EW=EW/std(EW(:))*std(W(:));
-       
-    subplot(L,K,K*(ii-1)+[1 2])    
+   subplot(L,K,K*(ii-1)+[1 2])    
 %     imagesc(EW(1,ind_array),[mi ma]);
     xx=1:length(ind_array);
     plot(xx,EW(1,ind_array),'r',xx,W(1,ind_array),'b');
@@ -177,5 +175,5 @@ letter=['(' char(b*(ii-1)+2+'A') ')'] ;
 end
 
 %  target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-Export2Folder(['Fig9.eps'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction';
+Export2Folder(['Fig8.tif'],target_folder) 

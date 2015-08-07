@@ -91,9 +91,9 @@ set(gca,'DataAspectRatio',[1 1 1])
 colorbar
 
 %%
-% target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2'
-target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\Revision2'
-Export2Folder(['Fig3.eps'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction'
+% target_folder='D:\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction'
+Export2Folder(['Fig2.tif'],target_folder) 
 
 %%
 mean(EW_obs(~W(1:K,1:K)))

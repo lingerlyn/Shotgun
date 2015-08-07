@@ -2,6 +2,10 @@ clear all
 % close all
 clc
 
+
+N=1e3; %Number of neurons. Set N=50 for figures 3&4, N=1e3 for figure 5
+isLIF=0; %are we using LIF? %Set isLIF=0 for figures 3&5, isLIF=1 for figure 4
+
 % Generate all figures for the paper
 addpath('Results')
 addpath('Misc')
@@ -12,9 +16,8 @@ addpath('GenerateSpikes');
 SetDefaultGraphicSettings(0)
 T=2e6;
 T_view=3e2;
-N=50;
 dt=1e-2; %100 Hz imaging frame rate
-isLIF=0; %are we using LIF?
+
 
 figure(1098)
 if N==50
@@ -252,14 +255,14 @@ letter=['(' char(b*(ii-1)+3+'A') ')'] ;
 
 end
 % 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision3';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction';
 if isLIF
-    Export2Folder([ 'Fig5.eps'],target_folder) 
+    Export2Folder([ 'Fig3.tif'],target_folder) 
 else
     if N==50
-      Export2Folder([ 'Fig4.eps'],target_folder) 
+      Export2Folder([ 'Fig4.tif'],target_folder) 
     elseif N==1e3
-      Export2Folder([ 'Fig6.eps'],target_folder) 
+      Export2Folder([ 'Fig5.tif'],target_folder) 
     end
 end
 

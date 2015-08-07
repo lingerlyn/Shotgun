@@ -106,5 +106,5 @@ for kk=1:4
 %     title('C','fontsize',labelfontsize);
 end
 % 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-Export2Folder(['Fig8.eps'],target_folder) 
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction';
+Export2Folder(['Fig7.tif'],target_folder) 

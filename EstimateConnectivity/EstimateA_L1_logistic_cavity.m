@@ -162,9 +162,12 @@ for kk=1:reweighted_L1_Reps
         end
 
         iteration=iteration+1;    
-        MAE(end+1)=mean(abs(x(:)-x_prev(:))); %#ok    
-        [R,correlation, zero_matching,sign_matching,~,~,~,~] = GetWeightsErrors( true_W,x );
-        quality(end+1,:)=[R,correlation, zero_matching,sign_matching]; %#ok  
+        MAE(end+1)=mean(abs(x(:)-x_prev(:))); %#ok   
+        if ~isempty(true_W)
+            [R,correlation, zero_matching,sign_matching,~,~,~,~] = GetWeightsErrors( true_W,x );
+            quality(end+1,:)=[R,correlation, zero_matching,sign_matching]; %#ok  
+        end
+        
         lambda_path(end+1)=lambda; %#ok  
             
         if show_progress
@@ -226,9 +229,11 @@ for kk=1:reweighted_L1_Reps
 
     end
     %%% 
-        
-        [~,~,~,~,TPR_p,FPR_p,TPR_n,FPR_n]= GetWeightsErrors( true_W,x );
-        error_rates(end+1,:)=[TPR_p,FPR_p,TPR_n,FPR_n]; %#ok  
+           
+        if ~isempty(true_W)
+            [~,~,~,~,TPR_p,FPR_p,TPR_n,FPR_n]= GetWeightsErrors( true_W,x );
+            error_rates(end+1,:)=[TPR_p,FPR_p,TPR_n,FPR_n]; %#ok  
+        end
         
     
 

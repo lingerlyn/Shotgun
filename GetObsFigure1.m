@@ -119,13 +119,15 @@ end
 end
 
 %%
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision2';
-figure_name='Fig1.eps';
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction'
+figure_name='Fig1.tif';
     
 set(gcf, 'Color', 'w'); 
 set(findall(gcf,'type','axe'),'box','on')
 % set(findall(gcf,'type','text'),'fontWeight','bold')
 %     set(gca,'fontWeight','bold')
-print(gcf,figure_name, '-painters','-depsc2')
+% print(gcf,figure_name, '-painters','-depsc2')
+% 
+% movefile(figure_name, fullfile(target_folder,figure_name));
 
-movefile(figure_name, fullfile(target_folder,figure_name));
+Export2Folder(figure_name,target_folder)

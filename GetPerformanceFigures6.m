@@ -133,9 +133,9 @@ for ii=L_O:-1:1
     title(letter,'color', 'k', 'Units', 'normalized', 'interpreter','none','position',title_pos,'fontweight','bold')
     grid on
 end
-% 
-target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\Revision3'
-Export2Folder(['Fig7.eps'],target_folder) 
+%%
+target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction'
+Export2Folder(['Fig6.tif'],target_folder) 
 
  %% Plot quality as function of distance
 % fh=figure(1003);
