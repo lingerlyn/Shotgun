@@ -3,7 +3,7 @@
 clear all
 close all
 clc
-
+d
 % dimension
 N=100; 
 % # time instants
