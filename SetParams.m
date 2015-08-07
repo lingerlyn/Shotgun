@@ -68,6 +68,7 @@ bin_num=1e3; %number of bins in marginal estimation of fitlered spikes (only rel
 stat_flags=v2struct(glasso,pos_def,restricted_penalty,est_spar,bin_num); %add more...
 
 %% SBM parameters - obsolete
+addpath('Misc')
 if strcmp(conn_type,'block')
     sbm=SetSbmParams(N,weight_scale); %does not work - please correct this
 else
