@@ -6,9 +6,9 @@ close all
 addpath('Misc')
 
 % dimension
-N=50; 
+N=4; 
 % # time instants
-T=1e5; 
+T=1e6; 
 % Is our data spikes (1) or flueresence traces (0) ?
 isSpikes=1;
 
@@ -18,9 +18,9 @@ addpath('GenerateConnectivity')
 conn_type='realistic'; spar=0.1;inhib_frac=0.2;weight_dist='lognormal';seed_weights=2;weight_scale=1;N_stim=0;
 % connectivity matrix
 [W,~]=GetWeights(N,conn_type,spar,inhib_frac,weight_dist,seed_weights,weight_scale,N_stim,[],[]);
-% W=[-0.1, 1, 1, 0; 0 -0.1 0 1; 0 0 -0.1 0; 0 0 0 -0.1];spar=1;
+W=[-0.1, 1, 1, 0; 0 -0.1 0 1; 0 0 -0.1 0; 0 0 0 -0.1];spar=1;
 %bias
-b=-3+0.1*randn(N,1); 
+b=-1.5+0.1*randn(N,1); 
 
 
 %% Generate spikes
@@ -31,7 +31,7 @@ T0=1e2;seed_spikes=1;neuron_type='logistic_with_history';N_stim=0; stim_type='pu
 S=GetSpikes(W,b,T,T0,seed_spikes,neuron_type,N_stim,stim_type,timescale,s0,verbose);
 
 %%observation matrix
-sample_ratio=0.2;
+sample_ratio=0.5;
 sample_type='double_continuous';
 seed_sample=1e6;
 obs_duration=100; %duration we observe each neurons
@@ -93,12 +93,12 @@ a=6;b=3;
 subplot(a,b,[1 4])
 ma=max(W(:)); mi=min(W(:));
 imagesc(W,[mi ma]); colorbar; title('W');  ylabel('#neuron') ; xlabel('#neuron')
-subplot(a,b,[2 3 5 6 8 9])
-imagesc(S); title('S - spikes matrix '); ylabel('#neuron') ; xlabel('time')
-xlim([0 1e4])
-subplot(a,b,[11 12 14 15 17 18])
-imagesc(O); title('O - Observations matrix');  ylabel('#neuron'); xlabel('time')
-xlim([0 1e4])
+subplot(a,b,[2 3 5 6 7 8])
+imagesc(S); title('S'); ylabel('#neuron') ; xlabel('time')
+xlim([0 1e3])
+subplot(a,b,[11 12 13 16 17 18])
+imagesc(O); title('O');  ylabel('#neuron'); xlabel('time')
+xlim([0 1e3])
 subplot(a,b,[7 10])
 imagesc(EW,[mi ma]); colorbar; title('Inferred W');  ylabel('#neuron') ; xlabel('#neuron')
 subplot(a,b,[13 16] )

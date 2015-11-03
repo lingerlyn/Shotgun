@@ -3,7 +3,7 @@ clear all
 clc
 
 
-N=1e3; %Number of neurons. Set N=50 for figures 3&4, N=1e3 for figure 5
+N=50; %Number of neurons. Set N=50 for figures 3&4, N=1e3 for figure 5
 isLIF=0; %are we using LIF? %Set isLIF=0 for figures 3&5, isLIF=1 for figure 4
 
 % Generate all figures for the paper
@@ -257,10 +257,10 @@ end
 % 
 target_folder='C:\Users\Daniel\Copy\Columbia\Research\Shotgun\Manuscript\FinalProduction';
 if isLIF
-    Export2Folder([ 'Fig3.tif'],target_folder) 
+    Export2Folder([ 'Fig4.tif'],target_folder) 
 else
     if N==50
-      Export2Folder([ 'Fig4.tif'],target_folder) 
+      Export2Folder([ 'Fig3.tif'],target_folder) 
     elseif N==1e3
       Export2Folder([ 'Fig5.tif'],target_folder) 
     end
