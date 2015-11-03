@@ -8,7 +8,7 @@ addpath('Misc')
 % dimension
 N=50; 
 % # time instants
-T=1e5; 
+T=1e6; 
 % Is our data spikes (1) or flueresence traces (0) ?
 isSpikes=1;
 
